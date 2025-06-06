@@ -282,7 +282,7 @@ function MainPage() {
         {/* Logo on the left */}
         <div style={{ display: 'flex', alignItems: 'stretch' }}>
           <img
-            src="/logo192.png"
+            src={process.env.PUBLIC_URL + '/logo192.png'}
             alt="RunGrade Logo"
             style={{
               height: '100%',
@@ -392,7 +392,7 @@ function MainPage() {
             {show3D ? (
               <iframe
                 ref={iframeRef}
-                src="/racing-snakes-cesium.html"
+                src={process.env.PUBLIC_URL + '/racing-snakes-cesium.html'}
                 title="Racing Snakes Cesium"
                 style={{ width: '100%', height: '100%', border: 'none' }}
                 onLoad={() => setIframeLoaded(true)}

@@ -312,7 +312,7 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
         {show3D ? (
           <iframe
             ref={iframeRef}
-            src="/racing-snakes-cesium.html"
+            src={process.env.PUBLIC_URL + '/racing-snakes-cesium.html'}
             title="Racing Snakes Cesium"
             style={{ width: '100%', height: '100%', border: 'none' }}
             onLoad={() => setIframeLoaded(true)}
