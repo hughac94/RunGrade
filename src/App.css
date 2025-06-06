@@ -1,0 +1,73 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.title {
+  font-size: 3rem;
+  color: #0a1a2f; /* Dark navy blue */
+  text-align: center;
+  margin-bottom: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: text-shadow 0.3s ease, color 0.3s ease;
+}
+
+.title:hover {
+  text-shadow: 0 0 10px #0a1a2f, 0 0 20px #0a1a2f;
+  color: #163a5f; /* Slightly lighter on hover */
+}
+
+
+@keyframes flash {
+  0%, 100% { color: #5b7cc3 !important; text-shadow: 0 2px 8px rgba(37,99,235,0.15) !important; }
+  50% { color: #467cd3 !important; text-shadow: 0 4px 24px rgba(30,41,59,0.18) !important; }
+}
+
+.rungrade-flash {
+  animation: flash 2s infinite;
+  transition: color 0.3s;
+}
+
+.rungrade-flash:hover {
+  text-shadow:
+    0 0 10px #2563eb,
+    0 0 20px #2563eb,
+    0 0 40px #2563eb,
+    0 0 80px #2563eb;
+  color: #163a5f !important;
+  transition: text-shadow 0.2s, color 0.2s;
+}
