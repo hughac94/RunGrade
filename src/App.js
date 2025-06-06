@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import MainPage from './MainPage';
 import GPXComparisonPage from './GPXComparisonPage';
 import GAPDetailpage from './GAPDetailpage';
@@ -121,6 +121,7 @@ function App() {
         </Toolbar>
       </AppBar>
       <Routes>
+        <Route path="/" element={<Navigate to="/user-guide" replace />} />
         <Route path="/user-guide" element={<UserGuidePage />} />
         <Route path="/single-gpx" element={<MainPage />} />
         <Route path="/multi-gpx" element={<GPXComparisonPage />} />
