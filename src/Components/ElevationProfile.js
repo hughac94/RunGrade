@@ -1,7 +1,7 @@
 // Install first: npm install recharts
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Label } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Label, CartesianGrid } from 'recharts';
 
 function ElevationProfileRecharts({ points, selectedLat, selectedLon, checkpoints = [] }) {
   if (!points || points.length < 2) return null;
@@ -58,16 +58,34 @@ function ElevationProfileRecharts({ points, selectedLat, selectedLon, checkpoint
   const maxElev = Math.max(...data.map(d => d.elevation));
   const maxDistance = data.length > 0 ? Math.max(...data.map(d => d.distance)) : 0;
 
+  // Generate 5km grid lines
+  const gridLines = [];
+  for (let x = 5; x < maxDistance; x += 5) {
+    gridLines.push(
+      <ReferenceLine
+        key={`grid-${x}`}
+        x={x}
+        stroke="#bbb"
+        strokeDasharray="2 4"
+        strokeWidth={1}
+        ifOverflow="extendDomain"
+        label={null}
+        opacity={0.4}
+      />
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height={250}>
       <LineChart
         data={data}
-        margin={{ top: 32, right: 20, left: 0, bottom: 0 }} // <-- Add this
+        margin={{ top: 32, right: 20, left: 0, bottom: 0 }}
       >
+        <CartesianGrid stroke="#eee" strokeDasharray="3 3" />
         <XAxis
           dataKey="distance"
           type="number"
-          domain={[0, maxDistance]} // Ensures x-axis matches route length exactly
+          domain={[0, maxDistance]}
           tickFormatter={v => v.toFixed(1)}
           label={{ value: 'Distance (km)', position: 'insideBottom', offset: -5 }}
         />
@@ -99,6 +117,8 @@ function ElevationProfileRecharts({ points, selectedLat, selectedLon, checkpoint
           dot={false}
           isAnimationActive={false}
         />
+        {/* 5km faded grid lines */}
+        {gridLines}
         {/* Checkpoints */}
         {checkpoints.map(cp => (
           <ReferenceLine
