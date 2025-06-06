@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/RunGrade/static/css/main.b381c710.css",
+    "main.js": "/RunGrade/static/js/main.d03a9f98.js",
+    "static/js/234.af7473a6.chunk.js": "/RunGrade/static/js/234.af7473a6.chunk.js",
+    "static/js/974.26547ea9.chunk.js": "/RunGrade/static/js/974.26547ea9.chunk.js",
+    "index.html": "/RunGrade/index.html",
+    "main.b381c710.css.map": "/RunGrade/static/css/main.b381c710.css.map",
+    "main.d03a9f98.js.map": "/RunGrade/static/js/main.d03a9f98.js.map",
+    "974.26547ea9.chunk.js.map": "/RunGrade/static/js/974.26547ea9.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b381c710.css",
+    "static/js/main.d03a9f98.js"
+  ]
+}
