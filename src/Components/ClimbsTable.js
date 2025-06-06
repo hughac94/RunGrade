@@ -8,7 +8,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
 
 
 
-
   // Allow climb renaming
   const handleNameChange = (idx, newName) => {
     if (!setClimbs) return;
