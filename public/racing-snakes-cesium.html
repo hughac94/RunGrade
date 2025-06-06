@@ -98,7 +98,12 @@
         const posIdxSafe = typeof posIdx === 'number' && route[posIdx] ? posIdx : 0;
         const pt = route[posIdxSafe];
         const position = Cesium.Cartesian3.fromDegrees(pt.lon, pt.lat, (pt.ele || 0) + 10);
-        const labelText = `${runnerName || 'Runner'}\n${distance} km\n${elapsed}`;
+          let labelText = runnerName || 'Runner';
+    if (distance && elapsed && distance !== 'undefined' && elapsed !== 'undefined') {
+      labelText += `\n${distance} km\n${elapsed}`;
+    }
+  
+        
         const runnerEntity = viewer.entities.add({
           position,
           point: { pixelSize: 16, color: Cesium.Color.fromCssColorString(color || 'yellow') },
