@@ -16,6 +16,7 @@
     "cesium": "^1.129.0",
     "framer-motion": "^12.15.0",
     "geokdbush": "^2.0.1",
+    "gh-pages": "^6.3.0",
     "gpxparser": "^3.0.8",
     "kdbush": "^4.0.2",
     "leaflet": "^1.9.4",
@@ -41,7 +42,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -60,5 +63,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "homepage": "https://hughac94.github.io/RunGrade"
 }
