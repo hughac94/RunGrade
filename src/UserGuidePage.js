@@ -12,7 +12,7 @@ export default function UserGuidePage() {
         sx={{
           fontWeight: 800,
           letterSpacing: 2,
-          fontSize: { xs: 28, sm: 36, md: 44 }, // Heading stays large
+          fontSize: { xs: 28, sm: 36, md: 44 },
           textAlign: 'center',
           userSelect: 'none',
           fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
@@ -48,6 +48,14 @@ export default function UserGuidePage() {
           <li>Some GPX files are notty and full of bugs. The app has some in-built, 'advanced' cleaning and parsing tools which often - not always! - help</li>
           <li>In 3D maps, hold ctrl and click and drag to change your N-S orientation and see mountains side on</li>
           <li>Remember GAP is just an estimate based on data, it's never going to account for all the nuances of a race or course</li>
+        </ul>
+      </Typography>
+      <Typography sx={{ mb: 3, fontSize: 'inherit' }}>
+        <b>Pro Tips:</b> <i>- Where just normal tips don't cut it</i>
+        <ul style={{ paddingLeft: 24, fontSize: 'inherit' }}>
+          <li style={{ marginBottom: 16 }}>
+            <b>Finding GPX files:</b> Use <a href="https://www.sauce.llc/" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>Strava Sauce</a> to find and download GPX files from your friends, enemies, idols, and competitors from their Strava pages
+          </li>
         </ul>
       </Typography>
       <Typography sx={{ mb: 3, fontSize: 'inherit' }}>
