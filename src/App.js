@@ -132,11 +132,11 @@ function App() {
             <GAPDetailpage
               polyCoeffs={polyCoeffs}
               formatPoly4={formatPoly4}
-              // paceAnalysis={...} // pass if needed
             />
           }
         />
-        
+        {/* Catch-all route for any unmatched paths */}
+        <Route path="*" element={<Navigate to="/user-guide" replace />} />
       </Routes>
     </>
   );
