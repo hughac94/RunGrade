@@ -57,17 +57,7 @@ export function fitStravaGradientPacePoly4(file) {
             const coeffs = fitPoly4(x, y, math);
             const normalizedCoeffs = normalizePoly4(coeffs);
 
-            // Add this helper to evaluate the polynomial at any x
-            function poly(x) {
-              return (
-                normalizedCoeffs[0] * Math.pow(x, 4) +
-                normalizedCoeffs[1] * Math.pow(x, 3) +
-                normalizedCoeffs[2] * Math.pow(x, 2) +
-                normalizedCoeffs[3] * x +
-                normalizedCoeffs[4]
-              );
-            }
-            // Log values at key gradients
+          
            
 
             resolve(normalizedCoeffs);

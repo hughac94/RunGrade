@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import MainPage from './MainPage';
 import GPXComparisonPage from './GPXComparisonPage';
 import GAPDetailpage from './GAPDetailpage';
@@ -10,13 +10,13 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import UserGuidePage from './UserGuidePage';
-import { fitStravaGradientPacePoly4, formatPoly4 } from './Components/StravadataCleaner';
+import { formatPoly4 } from './Components/StravadataCleaner';
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
 
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [polyCoeffs, polyError] = useStravaPolyCoeffs();
+  const [polyCoeffs] = useStravaPolyCoeffs();
 
 
   // Map each route to a tab index

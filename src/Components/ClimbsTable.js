@@ -24,35 +24,15 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
 
   // Calculate totals
   let totalGain = 0;
-  let totalClimbSeconds = 0;
-  let totalVamNumerator = 0;
-  let totalVamDenominator = 0;
+  
 
   filteredClimbs.forEach(climb => {
     totalGain += climb.gain || 0;
 
-    // Calculate climb time in seconds
-    let startTime = extractTime(route && route[climb.startIdx]);
-    let endTime = extractTime(route && route[climb.endIdx]);
-    let climbSeconds = null;
-    if (
-      startTime instanceof Date && !isNaN(startTime) &&
-      endTime instanceof Date && !isNaN(endTime)
-    ) {
-      const seconds = (endTime - startTime) / 1000;
-      if (!isNaN(seconds) && seconds >= 0 && seconds < 60 * 60 * 24 * 7) {
-        climbSeconds = seconds;
-        totalClimbSeconds += climbSeconds;
-        totalVamNumerator += (climb.gain || 0);
-        totalVamDenominator += climbSeconds;
-      }
-    }
+    
   });
 
-  // Aggregate VAM (total gain / total climbing time in hours)
-  const aggregateVam = totalVamDenominator > 0
-    ? Math.round((totalVamNumerator / totalVamDenominator) * 3600)
-    : '—';
+
 
   // Helper: Calculate total climbing (sum of all positive elevation changes) between two route indices
   function getTotalClimbingGain(route, startIdx, endIdx) {
@@ -281,55 +261,13 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                     {!noTimeData && (
                       <>
                         <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>
-                          {(() => {
-                            let startTime = extractTime(route && climb.startIdx != null ? route[climb.startIdx] : null);
-                            let endTime = extractTime(route && climb.endIdx != null ? route[climb.endIdx] : null);
-                            let climbTime = '—';
-                            if (
-                              startTime instanceof Date && !isNaN(startTime) &&
-                              endTime instanceof Date && !isNaN(endTime)
-                            ) {
-                              const seconds = (endTime - startTime) / 1000;
-                              if (!isNaN(seconds) && seconds >= 0 && seconds < 60 * 60 * 24 * 7) {
-                                climbTime = formatTime(seconds);
-                              }
-                            }
-                            return climbTime;
-                          })()}
+                          { climbTime}
                         </td>
                         <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>
-                          {(() => {
-                            let firstTime = extractTime(route && route[0]);
-                            let startTime = extractTime(route && climb.startIdx != null ? route[climb.startIdx] : null);
-                            let elapsedFromStart = '—';
-                            if (
-                              firstTime instanceof Date && !isNaN(firstTime) &&
-                              startTime instanceof Date && !isNaN(startTime)
-                            ) {
-                              const seconds = (startTime - firstTime) / 1000;
-                              if (!isNaN(seconds) && seconds >= 0 && seconds < 60 * 60 * 24 * 7) {
-                                elapsedFromStart = formatTime(seconds);
-                              }
-                            }
-                            return elapsedFromStart;
-                          })()}
+                           { elapsedFromStart}
                         </td>
                         <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center', borderRadius: idx === filteredClimbs.length - 1 ? '0 0 12px 0' : undefined }}>
-                          {(() => {
-                            let startTime = extractTime(route && climb.startIdx != null ? route[climb.startIdx] : null);
-                            let endTime = extractTime(route && climb.endIdx != null ? route[climb.endIdx] : null);
-                            let vam = '—';
-                            if (
-                              startTime instanceof Date && !isNaN(startTime) &&
-                              endTime instanceof Date && !isNaN(endTime)
-                            ) {
-                              const seconds = (endTime - startTime) / 1000;
-                              if (!isNaN(seconds) && seconds > 0 && climb.gain) {
-                                vam = Math.round((climb.gain / seconds) * 3600);
-                              }
-                            }
-                            return vam;
-                          })()}
+                          { vam}
                         </td>
                       </>
                     )}

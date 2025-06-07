@@ -69,12 +69,7 @@ function hasValidTimeData(bins) {
 }
 
 export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, checkpoints }) {
-  // Moving time: sum of bin times
-  const movingTime = bins && bins.length > 0
-    ? bins
-        .map(bin => timeStringToSeconds(bin.timeTaken))
-        .reduce((a, b) => a + b, 0)
-    : 0;
+
 
   // Elapsed time: first to last timestamp
   let elapsedTime = null;
@@ -87,11 +82,6 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
     elapsedTime = stats.totalTime;
   }
 
-  // Calculate paused time
-  let pausedTime = null;
-  if (elapsedTime && movingTime && elapsedTime > movingTime) {
-    pausedTime = elapsedTime - movingTime;
-  }
 
   // Calculate paces
   const overallGradeAdjPace = getGradeAdjustedPaceFromBins(bins);
@@ -136,20 +126,6 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
     const s = Math.floor(secs % 60);
     return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
-
-  const invalidBins = bins.filter(bin => !bin.timeTaken || !/^\d+:\d{2}:\d{2}$/.test(bin.timeTaken));
- 
-
-  const movingTimeArr = bins.map(bin => timeStringToSeconds(bin.timeTaken));
- 
-
-  const pacePlotSum = bins
-    .map(bin => {
-      const timeStr = typeof bin.timeTaken === 'string' ? bin.timeTaken : '0:00:00';
-      const [h, m, s] = timeStr.split(':').map(Number);
-      return h * 3600 + m * 60 + s;
-    })
-    .reduce((a, b) => a + b, 0);
   
 
   const theme = useTheme();

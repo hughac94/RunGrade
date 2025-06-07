@@ -10,15 +10,7 @@ import {
   Legend
 } from 'recharts';
 
-// Helper functions
-function median(arr) {
-  if (!arr.length) return null;
-  const sorted = arr.slice().sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
-}
+
 
 function parseTimeToSeconds(timeStr) {
   if (!timeStr) return 0;

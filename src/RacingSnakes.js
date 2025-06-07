@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import MapView from './Components/MapView';
 import GPXParser from 'gpxparser';
 import {
@@ -36,8 +36,6 @@ export default function RacingSnakes() {
   const [runnerNames, setRunnerNames] = useState([
     'Runner 1', 'Runner 2', 'Runner 3', 'Runner 4', 'Runner 5'
   ]);
-  const [elapsedArr, setElapsedArr] = useState(['', '', '', '', '']);
-  const [distanceArr, setDistanceArr] = useState(['', '', '', '', '']);
   const [sliderValue, setSliderValue] = useState(0);
   const [showPolyline, setShowPolyline] = useState([true, true, true, true, true]);
   
@@ -110,24 +108,6 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
     });
   };
 
-  // Calculate elapsed time and distance for slider for all runners
-  useEffect(() => {
-    setElapsedArr(prev => prev.map((_, idx) => {
-      const route = routes[idx];
-      if (route.length < 2) return '';
-      const posIdx = Math.round(sliderValue * (route.length - 1));
-      const start = route[0]?.time ? new Date(route[0].time) : null;
-      const now = route[posIdx]?.time ? new Date(route[posIdx].time) : null;
-      return start && now ? formatElapsed(now - start) : '';
-    }));
-    setDistanceArr(prev => prev.map((_, idx) => {
-      const dists = distances[idx];
-      const route = routes[idx];
-      if (route.length < 2) return '';
-      const posIdx = Math.round(sliderValue * (route.length - 1));
-      return dists[posIdx] ? dists[posIdx].toFixed(2) : '0.00';
-    }));
-  }, [sliderValue, routes, distances]);
 
  
 
@@ -177,7 +157,7 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
     };
   });
 
-  const { iframeRef, iframeLoaded, setIframeLoaded } = useCesiumIframe({
+  const { iframeRef, setIframeLoaded } = useCesiumIframe({
     show3D,
     runners,
     sliderValue,

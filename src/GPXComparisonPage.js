@@ -1,16 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import ConfigPanel from './Components/ConfigPanel';
-import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import PaceByGradientScatter from './Components/PaceByGradientChart';
 import Box from '@mui/material/Box';
 import KeyComparisonStats from './Components/KeyComparisonStats';
-import PaceByGradientChart from './Components/PaceByGradientChart';
 import { getAnalysisBins } from './Components/GPXGapanalysis';
 import { haversine } from './Components/gpxAnalysis';
 import GPXParser from 'gpxparser';
-import { fitStravaGradientPacePoly4 } from './Components/StravadataCleaner';
 import GradeAdjustedPaceBySegmentChart from './Components/GradeAdjustedPaceBySegmentChart';
 import {
   getTotalDistance,
@@ -34,69 +31,9 @@ function filterByDistance(points, startKm, endKm) {
   );
 }
 
-function trimToShortest(route1, route2, buffer = 500) {
-  if (!route1.length || !route2.length) return [route1, route2];
-  const dist1 = route1[route1.length - 1].distance || 0;
-  const dist2 = route2[route2.length - 1].distance || 0;
-  const minDist = Math.max(0, Math.min(dist1, dist2) - buffer);
 
-  const trimRoute = (route) =>
-    route.filter(pt => (pt.distance || 0) <= minDist);
 
-  return [trimRoute(route1), trimRoute(route2)];
-}
 
-// Snap each point in route2 to nearest in route1, remove duplicates
-function snapRoute2ToRoute1(route2, route1, maxSnapDistance = 30, windowSize = 20) {
-  // maxSnapDistance in meters
-  if (!route1.length || !route2.length) return route2;
-
-  // Filter out invalid points
-  const cleanRoute1 = route1.filter(
-    pt => typeof pt.lon === 'number' && typeof pt.lat === 'number' && !isNaN(pt.lon) && !isNaN(pt.lat)
-  );
-  if (cleanRoute1.length !== route1.length) {
-    console.warn('Filtered out invalid points from route1:', route1.length - cleanRoute1.length);
-  }
-
-  const snapped = [];
-  let lastIdx = 0;
-  const usedIdx = new Set();
-
-  for (const pt2 of route2) {
-    if (
-      typeof pt2.lon !== 'number' ||
-      typeof pt2.lat !== 'number' ||
-      isNaN(pt2.lon) ||
-      isNaN(pt2.lat)
-    ) {
-      continue;
-    }
-    let minDist = Infinity;
-    let minIdx = -1;
-    // Only search a window of points near the last match
-    for (let i = Math.max(0, lastIdx - windowSize); i < Math.min(cleanRoute1.length, lastIdx + windowSize); i++) {
-      const pt1 = cleanRoute1[i];
-      const d = haversine(pt2.lat, pt2.lon, pt1.lat, pt1.lon);
-      if (d < minDist) {
-        minDist = d;
-        minIdx = i;
-      }
-    }
-    if (minDist <= maxSnapDistance && minIdx !== -1 && !usedIdx.has(minIdx)) {
-      lastIdx = minIdx;
-      usedIdx.add(minIdx);
-      snapped.push({
-        ...pt2,
-        lat: cleanRoute1[minIdx].lat,
-        lon: cleanRoute1[minIdx].lon,
-        ele: cleanRoute1[minIdx].ele,
-        distance: cleanRoute1[minIdx].distance
-      });
-    }
-  }
-  return snapped;
-}
 
 // Helper to add cumulative distance to each point
 function addCumulativeDistance(points) {
@@ -111,7 +48,7 @@ function addCumulativeDistance(points) {
 
 export default function GPXComparisonPage() {
   // State for File 1
-  const [file1, setFile1] = useState(null);
+  const [setFile1] = useState(null);
   const [file1Name, setFile1Name] = useState('');
   const [fullRoute1, setFullRoute1] = useState([]);
   const [route1Base, setRoute1Base] = useState([]);
@@ -124,14 +61,14 @@ export default function GPXComparisonPage() {
   const [pauseThreshold1, setPauseThreshold1] = useState(120);
   const [smoothElevation1, setSmoothElevation1] = useState(false);
   const [smoothingWindow1, setSmoothingWindow1] = useState(5);
-  const [polyCoeffs, polyError] = useStravaPolyCoeffs();
+  const [polyCoeffs] = useStravaPolyCoeffs();
   const [inputGapMin1, setInputGapMin1] = useState(4);
   const [inputGapSec1, setInputGapSec1] = useState(30);
   const [inputGapPaceMs1, setInputGapPaceMs1] = useState(0);
   const [bins1, setBins1] = useState([]);
   
   // State for File 2
-  const [file2, setFile2] = useState(null);
+  const [ setFile2] = useState(null);
   const [file2Name, setFile2Name] = useState('');
   const [fullRoute2, setFullRoute2] = useState([]);
   const [route2Base, setRoute2Base] = useState([]);

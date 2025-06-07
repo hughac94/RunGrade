@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
 import Typography from '@mui/material/Typography';
@@ -11,24 +11,16 @@ import {
   getTotalDistance,
   getTotalElevationGain,
   getAveragePace,
-  getOverallGradeAdjustedPace,
-  getTotalAdjustedTime,
-  getPaceAnalysisByGradient,
-  getCheckpointStats,
-  downsampleToMax,
-  median,
   smoothElevations 
 } from './Components/gpxAnalysis';
 import ElevationProfile from './Components/ElevationProfile';
 import MapView from './Components/MapView';
 import ClimbsTable from './Components/ClimbsTable';
 import CheckpointsTable from './Components/CheckpointsTable';
-import { fitStravaGradientPacePoly4, formatPoly4 } from './Components/StravadataCleaner';
+import { formatPoly4 } from './Components/StravadataCleaner';
 import { getAnalysisBins } from './Components/GPXGapanalysis';
-import Plot from 'react-plotly.js';
 import PaceAnalysisPlot from './Components/PaceAnalysisPlot';
 import StatsSummary from './Components/StatsSummary';
-import { gpx } from '@tmcw/togeojson';
 import GPXParser from "gpxparser";
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
 import { useCesiumIframe } from './Components/CesiumRecentre';
@@ -40,7 +32,6 @@ function MainPage() {
   const [selectedIdx, setSelectedIdx] = useState(null);
   const [minGain, setMinGain] = useState(50);
   const [maxLoss, setMaxLoss] = useState(20);
-  const [nthRoutePoint, setNthRoutePoint] = useState(1);
   const [checkpoints, setCheckpoints] = useState([]);
   const [downsample, setDownsample] = useState(false);
   const [downsampleFactor, setDownsampleFactor] = useState(20);
@@ -55,9 +46,8 @@ function MainPage() {
   const [smoothElevation, setSmoothElevation] = useState(false);
   const [smoothingWindow, setSmoothingWindow] = useState(7);
   const [climbs, setClimbs] = useState([]); // Only declare once
-  const [polyCoeffs, polyError] = useStravaPolyCoeffs();
+  const [polyCoeffs] = useStravaPolyCoeffs();
   const [show3D, setShow3D] = useState(false);
-  const prevShow3D = useRef(false);
   
 
   // Convert input pace (min:sec/km) to m/s
@@ -223,11 +213,7 @@ function MainPage() {
     }
   }, []);
 
-  // Use gpxAnalysis for pace analysis
-  const paceAnalysis = useMemo(() => getPaceAnalysisByGradient(bins), [bins]);
 
-  // Downsample the route for the elevation plot
-  const downsampledRoute = useMemo(() => downsampleToMax(fullRoute, 800), [fullRoute]);
 
   // Auto-populate checkpoints when route changes
   useEffect(() => {
@@ -255,7 +241,7 @@ function MainPage() {
     posIdx: route.length - 1,
   }];
 
-  const { iframeRef, iframeLoaded, setIframeLoaded } = useCesiumIframe({
+  const { iframeRef, setIframeLoaded } = useCesiumIframe({
     show3D,
     runners, 
     sliderValue: 0,    // or actual slider value

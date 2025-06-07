@@ -54,8 +54,8 @@ function ElevationProfileRecharts({ points, selectedLat, selectedLon, checkpoint
   }
 
   // Find min/max elevation for axis
-  const minElev = Math.min(...data.map(d => d.elevation));
-  const maxElev = Math.max(...data.map(d => d.elevation));
+
+
   const maxDistance = data.length > 0 ? Math.max(...data.map(d => d.distance)) : 0;
 
   // Generate 5km grid lines

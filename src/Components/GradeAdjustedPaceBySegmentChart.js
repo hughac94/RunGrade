@@ -9,21 +9,7 @@ import { getGradeAdjustedPaceFromBins } from './gpxAnalysis';
     return `${mins}:${secs.toString().padStart(2, '0')}/km`;
   }
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div style={{ background: '#fff', border: '1px solid #ccc', padding: 8 }}>
-        <div><b>{label}</b></div>
-        {payload.map((entry, i) => (
-          <div key={i} style={{ color: entry.color }}>
-            {entry.name}: {formatPace(entry.value)}
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+
 
 export default function GradeAdjustedPaceBySegmentChart({ bins1, bins2, segmentLengthKm = 5, color1 = '#1976d2', color2 = '#43a047', label1 = "GPX File 1", label2= "GPX File 2" }) {
   

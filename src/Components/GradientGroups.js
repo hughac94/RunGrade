@@ -1,6 +1,4 @@
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+
 
 const gradientSummaryGroups = [
   { label: 'Downhill', min: -Infinity, max: -3, icon: 'down' },
