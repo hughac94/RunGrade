@@ -79,7 +79,7 @@ export function findMajorClimbs(points, options = {}) {
   });
 
   for (let i = 1; i < points.length; i++) {
-    const [lat1, lon1, ele1, time1] = points[i - 1];
+    const [lat1, lon1, ele1] = points[i - 1];
     const [lat2, lon2, ele2, time2] = points[i];
 
     if (startIdx === null) {

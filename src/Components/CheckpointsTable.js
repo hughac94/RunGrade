@@ -197,7 +197,7 @@ function CheckpointsTable({
   // Initialize newGapArr with default modelled GAP for each checkpoint
   useEffect(() => {
     setNewGapArr(checkpoints.map(() => modelledGapMinutes));
-  }, [checkpoints.length, modelledGapMinutes]);
+  }, [checkpoints, modelledGapMinutes]);
 
   // Parse min:sec string to decimal minutes
   const parseMinSec = str => {

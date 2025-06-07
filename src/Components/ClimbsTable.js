@@ -28,8 +28,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
 
   filteredClimbs.forEach(climb => {
     totalGain += climb.gain || 0;
-
-    
   });
 
 

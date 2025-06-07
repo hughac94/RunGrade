@@ -280,10 +280,14 @@ function PanToStart({ route }) {
     }
   }, [route, map]);
 
+  // Extract complex expressions to separate variables
+  const routeStartLat = route && route[0] && route[0].lat;
+  const routeStartLon = route && route[0] && route[0].lon;
+
   // Reset zoom flag if route changes completely (e.g., new GPX)
   useEffect(() => {
     hasZoomedRef.current = false;
-  }, [route && route[0] && route[0].lat, route && route[0] && route[0].lon]);
+  }, [routeStartLat, routeStartLon]);
 
   return null;
 }
