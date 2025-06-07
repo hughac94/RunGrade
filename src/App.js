@@ -13,6 +13,8 @@ import UserGuidePage from './UserGuidePage';
 import { formatPoly4 } from './Components/StravadataCleaner';
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
 
+// main app
+
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
