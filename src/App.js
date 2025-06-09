@@ -4,6 +4,7 @@ import MainPage from './MainPage';
 import GPXComparisonPage from './GPXComparisonPage';
 import GAPDetailpage from './GAPDetailpage';
 import RacingSnakes from './RacingSnakes';
+import RunnerProfilePage from './RunnerProfilePage'; // 🆕 Import new page
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Tabs from '@mui/material/Tabs';
@@ -20,9 +21,8 @@ function App() {
   const navigate = useNavigate();
   const [polyCoeffs] = useStravaPolyCoeffs();
 
-
-  // Map each route to a tab index
-  const tabRoutes = ['/user-guide', '/single-gpx', '/multi-gpx',  '/racing-snakes', '/detail'];
+  // Map each route to a tab index - 🆕 Add runner-profile route
+  const tabRoutes = ['/user-guide', '/single-gpx', '/multi-gpx', '/racing-snakes', '/runner-profile', '/detail'];
   const tabValue = tabRoutes.indexOf(location.pathname);
   const safeTabValue = tabValue === -1 ? 0 : tabValue;
 
@@ -117,6 +117,7 @@ function App() {
               <Tab label={<span>🏠 Single GPX File</span>} />
               <Tab label={<span>🚀 Two GPX Files</span>} />
               <Tab label={<span>🐍 Racing Snakes</span>} />
+              <Tab label={<span>👤 Runner Profile</span>} /> {/* 🆕 New tab */}
               <Tab label={<span>📐 GAP Maths Detail</span>} />
             </Tabs>
           </Box>
@@ -128,6 +129,7 @@ function App() {
         <Route path="/single-gpx" element={<MainPage />} />
         <Route path="/multi-gpx" element={<GPXComparisonPage />} />
         <Route path="/racing-snakes" element={<RacingSnakes />} />
+        <Route path="/runner-profile" element={<RunnerProfilePage />} /> {/* 🆕 New route */}
         <Route
           path="/detail"
           element={
