@@ -352,35 +352,153 @@ function CheckpointsTable({
               borderRadius: 12,
               boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
               margin: '0 auto',
-              minWidth: 800
+              minWidth: 800,
+              tableLayout: 'fixed' // Add this to enforce equal column widths
             }}
           >
             <thead>
               <tr>
-                <th style={{ width: 32, background: '#f5f7fa', borderBottom: '2px solid #e0e0e0' }}></th>
-                <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600 }}>Name</th>
-                <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600 }}>Checkpoint (km)</th>
-                <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600 }}>Distance from Previous (km)</th>
-                <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600 }}>Cumulative Elevation Gain (m)</th>
-                <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600 }}>Elevation Gain from Previous (m)</th>
+                <th style={{ 
+                  width: '5%', // Delete button column - smaller
+                  background: '#f5f7fa', 
+                  borderBottom: '2px solid #e0e0e0' 
+                }}></th>
+                <th style={{ 
+                  width: '12%', // Equal width for main columns
+                  padding: 6, 
+                  borderBottom: '2px solid #e0e0e0', 
+                  background: '#f5f7fa', 
+                  textAlign: 'center', 
+                  fontWeight: 600 
+                }}>Name</th>
+                <th style={{ 
+                  width: '12%', 
+                  padding: 6, 
+                  borderBottom: '2px solid #e0e0e0', 
+                  background: '#f5f7fa', 
+                  textAlign: 'center', 
+                  fontWeight: 600 
+                }}>Checkpoint (km)</th>
+                <th style={{ 
+                  width: '12%', 
+                  padding: 6, 
+                  borderBottom: '2px solid #e0e0e0', 
+                  background: '#f5f7fa', 
+                  textAlign: 'center', 
+                  fontWeight: 600 
+                }}>Distance from Previous (km)</th>
+                <th style={{ 
+                  width: '12%', 
+                  padding: 6, 
+                  borderBottom: '2px solid #e0e0e0', 
+                  background: '#f5f7fa', 
+                  textAlign: 'center', 
+                  fontWeight: 600 
+                }}>Cumulative Elevation Gain (m)</th>
+                <th style={{ 
+                  width: '12%', 
+                  padding: 6, 
+                  borderBottom: '2px solid #e0e0e0', 
+                  background: '#f5f7fa', 
+                  textAlign: 'center', 
+                  fontWeight: 600 
+                }}>Elevation Gain from Previous (m)</th>
                 {/* Conditionally render time columns */}
                 {!noTimeData && (
                   <>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600 }}>Elapsed from Start</th>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600 }}>Elapsed from Previous</th>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#000' }}>Avg. Pace<br/>(min/km)</th>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#000' }}>Grade Adj. Pace<br/>(min/km)</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600 
+                    }}>Elapsed from Start</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600 
+                    }}>Elapsed from Previous</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#000' 
+                    }}>Avg. Pace<br/>(min/km)</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#000' 
+                    }}>Grade Adj. Pace<br/>(min/km)</th>
                   </>
                 )}
-                <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#2a72e5' }}>Adj. Time from Start</th>
-                <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#2a72e5' }}>Adj. Time from Previous</th>
+                <th style={{ 
+                  width: '12%', 
+                  padding: 6, 
+                  borderBottom: '2px solid #e0e0e0', 
+                  background: '#f5f7fa', 
+                  textAlign: 'center', 
+                  fontWeight: 600, 
+                  color: '#2a72e5' 
+                }}>Adj. Time from Start</th>
+                <th style={{ 
+                  width: '12%', 
+                  padding: 6, 
+                  borderBottom: '2px solid #e0e0e0', 
+                  background: '#f5f7fa', 
+                  textAlign: 'center', 
+                  fontWeight: 600, 
+                  color: '#2a72e5' 
+                }}>Adj. Time from Previous</th>
                 {/* New columns for edited splits */}
                 {editSplits && (
                   <>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#2e7d32' }}>Modelled GAP<br/>(min/km)</th>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#2e7d32' }}>New Edited GAP<br/>(min/km)</th>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#2e7d32' }}>New Time Overall<br/>(hh:mm:ss)</th>
-                    <th style={{ padding: 6, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, color: '#2e7d32' }}>New Time from Previous<br/>(hh:mm:ss)</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#2e7d32' 
+                    }}>Modelled GAP<br/>(min/km)</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#2e7d32' 
+                    }}>New Edited GAP<br/>(min/km)</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#2e7d32' 
+                    }}>New Time Overall<br/>(hh:mm:ss)</th>
+                    <th style={{ 
+                      width: '12%', 
+                      padding: 6, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      background: '#f5f7fa', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#2e7d32' 
+                    }}>New Time from Previous<br/>(hh:mm:ss)</th>
                   </>
                 )}
               </tr>
