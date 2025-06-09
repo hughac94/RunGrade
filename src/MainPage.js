@@ -24,6 +24,7 @@ import StatsSummary from './Components/StatsSummary';
 import GPXParser from "gpxparser";
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
 import { useCesiumIframe } from './Components/CesiumRecentre';
+import WeatherPredictor from './Components/WeatherPredictor';
 
 function MainPage() {
   const [route, setRoute] = useState([]); // single route
@@ -435,14 +436,14 @@ function MainPage() {
         borderTop: '2px solid #e0e0e0'
       }} />
 
-      {/* Pace Analysis Section - reduce gap */}
+      {/* Pace Analysis Section */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0' }}>
         <div style={{ width: '100%' }}>
           <PaceAnalysisPlot bins={bins} route={route} polyCoeffs={polyCoeffs} formatPoly4={formatPoly4} checkpoints={checkpoints} />
         </div>
       </div>
 
-      {/* Grey line separator between summary table and polynomial section */}
+      {/* Grey line separator */}
       <hr style={{
         width: '100%',
         maxWidth: 1800,
@@ -451,7 +452,15 @@ function MainPage() {
         borderTop: '2px solid #e0e0e0'
       }} />
 
-      
+      {/* Weather Predictor Section */}
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0' }}>
+        <div style={{ width: '100%' }}>
+          <WeatherPredictor 
+            route={route}
+            bins={bins}
+          />
+        </div>
+      </div>
     </div>
   );
 }
