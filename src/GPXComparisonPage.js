@@ -20,6 +20,7 @@ import {
 import Slider from '@mui/material/Slider';
 import TextField from '@mui/material/TextField';
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
+import CheckpointsComparisonTable from './Components/CheckpointsComparisonTable';
 
 // helper functions for trimming and snapping
 
@@ -47,8 +48,8 @@ function addCumulativeDistance(points) {
 }
 
 export default function GPXComparisonPage() {
-  // State for File 1
-  const [setFile1] = useState(null);
+  // State for File 1 - Remove unused file1 state
+  // const [file1, setFile1] = useState(null);  // Remove this line
   const [file1Name, setFile1Name] = useState('');
   const [fullRoute1, setFullRoute1] = useState([]);
   const [route1Base, setRoute1Base] = useState([]);
@@ -67,8 +68,8 @@ export default function GPXComparisonPage() {
   const [inputGapPaceMs1, setInputGapPaceMs1] = useState(0);
   const [bins1, setBins1] = useState([]);
   
-  // State for File 2
-  const [ setFile2] = useState(null);
+  // State for File 2 - Remove unused file2 state
+  // const [file2, setFile2] = useState(null);  // Remove this line
   const [file2Name, setFile2Name] = useState('');
   const [fullRoute2, setFullRoute2] = useState([]);
   const [route2Base, setRoute2Base] = useState([]);
@@ -107,7 +108,7 @@ useEffect(() => {
   // GPX file upload and parsing for File 1
   const handleFileChange1 = (e) => {
     const file = e.target.files[0];
-    setFile1(file);
+    // setFile1(file);  // Remove this line
     setFile1Name(file ? file.name : '');
     if (!file) {
       setFullRoute1([]);
@@ -146,7 +147,7 @@ useEffect(() => {
   // GPX file upload and parsing for File 2
   const handleFileChange2 = (e) => {
     const file = e.target.files[0];
-    setFile2(file);
+    // setFile2(file);  // Remove this line
     setFile2Name(file ? file.name : '');
     if (!file) {
       setFullRoute2([]);
@@ -341,7 +342,7 @@ const sectionStats2 = section2.length ? {
         maxWidth: 1200,
         minWidth: 320,
         margin: '32px auto',
-        padding: 0, // Add padding if you want
+        padding: 0,
       }}
     >
       <Box sx={{ display: 'flex', gap: 4 }}>
@@ -547,6 +548,14 @@ const sectionStats2 = section2.length ? {
     
   />
 </Box>
+      <CheckpointsComparisonTable
+        route1={route1}
+        route2={route2}
+        distances1={route1.map(pt => pt.distance || 0)}
+        distances2={route2.map(pt => pt.distance || 0)}
+        label1={runner1Name}
+        label2={runner2Name}
+      />
     </div>
     
   )
