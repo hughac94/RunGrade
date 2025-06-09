@@ -106,18 +106,47 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, my: 2 }}>
           {(() => {
-            // For each summary group, sum bins whose gradient falls in that group (no double-counting)
+            // Go back to using bins directly for terrain grouping (not gradient groups)
             const diffs = gradientSummaryGroups.map(summary => {
-              let sum = 0;
-              bins1.forEach((bin1, i) => {
-                const bin2 = bins2[i];
-                if (!bin2) return;
-                if (bin1.gradient >= summary.min && bin1.gradient < summary.max) {
-                  const diffSec = parseTimeToSeconds(bin1.timeTaken) - parseTimeToSeconds(bin2.timeTaken);
-                  sum += diffSec;
+              let totalTime1 = 0;
+              let totalTime2 = 0;
+              
+              // Sum all bins for file 1 that fall in this terrain category
+              bins1.forEach(bin1 => {
+                let inGroup = false;
+                if (summary.label === 'Downhill') {
+                  inGroup = bin1.gradient < -3;
+                } else if (summary.label === 'Flat') {
+                  inGroup = bin1.gradient >= -3 && bin1.gradient <= 3;
+                } else if (summary.label === 'Uphill') {
+                  inGroup = bin1.gradient > 3;
+                }
+                
+                if (inGroup) {
+                  totalTime1 += parseTimeToSeconds(bin1.timeTaken);
                 }
               });
-              return sum;
+              
+              // Sum all bins for file 2 that fall in this terrain category  
+              bins2.forEach(bin2 => {
+                let inGroup = false;
+                if (summary.label === 'Downhill') {
+                  inGroup = bin2.gradient < -3;
+                } else if (summary.label === 'Flat') {
+                  inGroup = bin2.gradient >= -3 && bin2.gradient <= 3;
+                } else if (summary.label === 'Uphill') {
+                  inGroup = bin2.gradient > 3;
+                }
+                
+                if (inGroup) {
+                  totalTime2 += parseTimeToSeconds(bin2.timeTaken);
+                }
+              });
+              
+              const diffSec = totalTime1 - totalTime2;
+              console.log(`${summary.label}: File1=${formatHMS(totalTime1)}, File2=${formatHMS(totalTime2)}, Diff=${formatHMS(diffSec)}`);
+              
+              return diffSec;
             });
             const icons = [
               <ArrowDownwardIcon sx={{ fontSize: 48, color: '#888'  }} />,
@@ -206,7 +235,7 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
           >
           Total Time By Gradients
         </Typography>
-        <BarResponsiveContainer width="100%" height={260}>
+        <BarResponsiveContainer width="100%" height={400}>
           <BarChart
             data={barChartData}
             margin={{ top: 20, right: 30, left: 10, bottom: 40 }}
@@ -219,6 +248,33 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
             />
             <BarYAxis
               label={{ value: 'Total Time (min)', angle: -90, position: 'insideLeft', offset: 10 }}
+              domain={(() => {
+                // Find the minimum and maximum values across all data
+                let minValue = Infinity;
+                let maxValue = -Infinity;
+                
+                barChartData.forEach(item => {
+                  if (item.file1 > 0) {
+                    minValue = Math.min(minValue, item.file1);
+                    maxValue = Math.max(maxValue, item.file1);
+                  }
+                  if (item.file2 > 0) {
+                    minValue = Math.min(minValue, item.file2);
+                    maxValue = Math.max(maxValue, item.file2);
+                  }
+                });
+                
+                // If no valid data, use auto scaling
+                if (minValue === Infinity) {
+                  return ['auto', 'auto'];
+                }
+                
+                // Set domain with reasonable padding
+                const yMin = Math.max(0, Math.floor(minValue - 5));
+                const yMax = Math.ceil(maxValue + 5);
+                
+                return [yMin, yMax];
+              })()}
             />
             <BarTooltip
               formatter={val => `${val.toFixed(1)} min`}
