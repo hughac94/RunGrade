@@ -458,6 +458,7 @@ function MainPage() {
           <WeatherPredictor 
             route={route}
             bins={bins}
+            checkpoints={checkpoints}
           />
         </div>
       </div>

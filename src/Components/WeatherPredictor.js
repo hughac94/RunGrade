@@ -227,7 +227,7 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
       const targetTime = addHours(startDateTime, row.targetTimeSeconds / 3600);
       const elevation = Math.round(row.elevation || 0);
       
-      // Open-Meteo API call with additional parameters
+      // Open-Meteo API call with additional parameters including daily data
       const params = new URLSearchParams({
         latitude: row.lat.toFixed(6),
         longitude: row.lon.toFixed(6),
@@ -238,9 +238,10 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
           'weather_code',
           'wind_speed_10m',
           'wind_gusts_10m',
-          'visibility',          // 🆕 Added visibility
-          'uv_index'            // 🆕 Added UV index
+          'uv_index'
+          // Removed 'visibility' completely
         ].join(','),
+        daily: 'sunrise,sunset', // 🆕 Add sunrise/sunset data
         elevation: elevation,
         timezone: 'auto',
         forecast_days: 16
@@ -259,15 +260,57 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
       
       if (hourIndex === -1) return null;
       
+      // Find the corresponding day for sunrise/sunset
+      const targetDate = targetTime.toISOString().slice(0, 10); // YYYY-MM-DD
+      const dayIndex = data.daily.time.findIndex(date => date === targetDate);
+      
+      let sunStatus = 'Unknown';
+      let sunIcon = '❓';
+      
+      if (dayIndex !== -1) {
+        const sunrise = new Date(data.daily.sunrise[dayIndex]);
+        const sunset = new Date(data.daily.sunset[dayIndex]);
+        
+        if (targetTime < sunrise) {
+          sunStatus = `Night (🌅 ${sunrise.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })})`;
+          sunIcon = '🌙';
+        } else if (targetTime > sunset) {
+          sunStatus = `Night (🌇 ${sunset.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })})`;
+          sunIcon = '🌙';
+        } else {
+          // Daytime - calculate position
+          const totalDaylight = sunset.getTime() - sunrise.getTime();
+          const timeSinceSunrise = targetTime.getTime() - sunrise.getTime();
+          const dayProgress = timeSinceSunrise / totalDaylight;
+          
+          if (dayProgress < 0.25) {
+            sunStatus = 'Early Morning';
+            sunIcon = '🌅';
+          } else if (dayProgress < 0.5) {
+            sunStatus = 'Morning';
+            sunIcon = '🌤️';
+          } else if (dayProgress < 0.75) {
+            sunStatus = 'Afternoon';
+            sunIcon = '☀️';
+          } else {
+            sunStatus = 'Evening';
+            sunIcon = '🌇';
+          }
+        }
+      }
+      
+      // Remove visibility from the return statement:
       return {
         weather: getWeatherDescription(data.hourly.weather_code[hourIndex]),
         temperature: `${Math.round(data.hourly.temperature_2m[hourIndex])}°C`,
         feelsLike: `${Math.round(data.hourly.apparent_temperature[hourIndex])}°C`,
         wind: `${Math.round(data.hourly.wind_speed_10m[hourIndex])} km/h`,
-        windGusts: `${Math.round(data.hourly.wind_gusts_10m[hourIndex])} km/h`, // 🆕
-        visibility: `${Math.round(data.hourly.visibility[hourIndex] / 1000)} km`, // 🆕 Convert m to km
-        uvIndex: data.hourly.uv_index[hourIndex] ? Math.round(data.hourly.uv_index[hourIndex]) : '0', // 🆕
-        precipitation: `${data.hourly.precipitation[hourIndex]}mm`
+        windGusts: `${Math.round(data.hourly.wind_gusts_10m[hourIndex])} km/h`,
+        // Removed all visibility code
+        uvIndex: data.hourly.uv_index[hourIndex] ? Math.round(data.hourly.uv_index[hourIndex]) : '0',
+        precipitation: `${data.hourly.precipitation[hourIndex]}mm`,
+        sunStatus: sunStatus,
+        sunIcon: sunIcon
       };
       
     } catch (error) {
@@ -415,6 +458,9 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
                     ⛰️ Elevation (m)
                   </th>
                   <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
+                    🌅 Sun Level
+                  </th>
+                  <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
                     🌤️ Weather
                   </th>
                   <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
@@ -430,9 +476,6 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
                     🌪️ Gusts
                   </th>
                   <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
-                    👁️ Visibility
-                  </th>
-                  <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
                     ☀️ UV Index
                   </th>
                   <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', background: '#f5f7fa', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
@@ -442,7 +485,7 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
               </thead>
               <tbody>
                 {tableRows.map((row, idx) => {
-                  const weather = weatherData[row.targetTimeSeconds]; // Get weather for this row
+                  const weather = weatherData[row.targetTimeSeconds];
                   return (
                     <tr key={idx} style={{ 
                       background: row.isLastBucket ? '#f0f8ff' : (idx % 2 === 0 ? '#fff' : '#f9fafb'),
@@ -486,6 +529,19 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
                         fontSize: 12
                       }}>
                         {row.elevation ? Math.round(row.elevation) : '-'}
+                      </td>
+                      <td style={{ 
+                        padding: 8, 
+                        borderBottom: '1px solid #e0e0e0',
+                        textAlign: 'center',
+                        fontSize: 11,
+                        maxWidth: 90,
+                        color: weather?.sunIcon === '🌙' ? '#4a5568' : '#d69e2e'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <span style={{ fontSize: 14 }}>{weather?.sunIcon || '❓'}</span>
+                          <span style={{ fontSize: 10, lineHeight: 1.2 }}>{weather?.sunStatus || '-'}</span>
+                        </div>
                       </td>
                       <td style={{ 
                         padding: 10, 
@@ -532,15 +588,7 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
                       }}>
                         {weather?.windGusts || '-'}
                       </td>
-                      <td style={{ 
-                        padding: 10, 
-                        borderBottom: '1px solid #e0e0e0', 
-                        textAlign: 'center',
-                        color: '#9c27b0',
-                        fontSize: 12
-                      }}>
-                        {weather?.visibility || '-'}
-                      </td>
+                      
                       <td style={{ 
                         padding: 10, 
                         borderBottom: '1px solid #e0e0e0', 
