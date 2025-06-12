@@ -5,6 +5,13 @@ import Plot from 'react-plotly.js';
 import PageContainer from './Components/Styles';
 
 export default function GAPDetailpage({ polyCoeffs, formatPoly4 }) {
+  console.log("Polynomial coefficients:", polyCoeffs);
+
+  const x = -35;
+  const [a, b, c, d, e] = polyCoeffs;
+  const result = a * Math.pow(x, 4) + b * Math.pow(x, 3) + c * Math.pow(x, 2) + d * x + e;
+  console.log(`At x = ${x}, polynomial = ${result}`);
+
   return (
     <PageContainer>
       
