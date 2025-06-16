@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography } from '@mui/material'; 
-import { extractTime, formatTime } from './gpxAnalysis';
-
+import { extractTime, formatTime, formatMinSec } from './gpxAnalysis';
 
 function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, newAdjustedVelocity, bins, setClimbs }) {
   const [noTimeData, setNoTimeData] = useState(false);
+  const [editSplits, setEditSplits] = useState(false); // State for editSplits
+  const [newGapArr, setNewGapArr] = useState([]); // State for new GAP values
+  const defaultGap = 5; // Default GAP value in min/km
 
+  // Filter out climbs with gain of 0
+  const filteredClimbs = climbs.filter(climb => climb.gain > 0);
 
-
+  useEffect(() => {
+    // Initialize with default GAP for all climbs
+    setNewGapArr(filteredClimbs.map(() => defaultGap));
+  }, [filteredClimbs, defaultGap]);
+  
   // Allow climb renaming
   const handleNameChange = (idx, newName) => {
     if (!setClimbs) return;
@@ -19,18 +27,21 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
     });
   };
 
-  // Filter out climbs with gain of 0
-  const filteredClimbs = climbs.filter(climb => climb.gain > 0);
+  // helper
+  const parseMinSec = str => {
+    if (!str) return NaN;
+    const parts = str.split(':');
+    if (parts.length !== 2) return NaN;
+    const [min, sec] = parts.map(Number);
+    if (isNaN(min) || isNaN(sec) || min < 0 || sec < 0 || sec >= 60) return NaN;
+    return min + sec / 60;
+  };
 
   // Calculate totals
   let totalGain = 0;
-  
-
   filteredClimbs.forEach(climb => {
     totalGain += climb.gain || 0;
   });
-
-
 
   // Helper: Calculate total climbing (sum of all positive elevation changes) between two route indices
   function getTotalClimbingGain(route, startIdx, endIdx) {
@@ -48,6 +59,45 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
     }
     return Math.round(gain);
   }
+
+  const calculateNewClimbTime = (climb, gap, bins) => {
+    if (!climb || !climb.gain || !climb.distance || !bins || !Array.isArray(bins)) {
+      return null;
+    }
+    
+    // Find which bins are part of this climb
+    let binEndDistances = [];
+    let cumDist = 0;
+    for (let bin of bins) {
+      cumDist += (bin.distance || 0) / 1000; // m to km
+      binEndDistances.push(cumDist);
+    }
+    
+    // Determine which bins fall within this climb
+    const climbStartKm = climb.start;
+    const climbEndKm = climb.start + climb.distance;
+    let binStartIdx = binEndDistances.findIndex(d => d >= climbStartKm);
+    if (binStartIdx === -1) binStartIdx = 0;
+    let binEndIdx = binEndDistances.findIndex(d => d >= climbEndKm);
+    if (binEndIdx === -1) binEndIdx = bins.length - 1;
+    
+    // Calculate time based on gradeAdjustedDistance - this is the key change!
+    let totalAdjustedTime = 0;
+    for (let i = binStartIdx; i <= binEndIdx; i++) {
+      const bin = bins[i];
+      if (!bin || typeof bin.gradeAdjustedDistance !== 'number' || !isFinite(bin.gradeAdjustedDistance)) continue;
+      
+      // Use gradeAdjustedDistance instead of applying our own adjustment factor
+      const gradeAdjDistanceKm = bin.gradeAdjustedDistance / 1000; // Convert to km
+      
+      // Calculate time using the new GAP pace directly (no need for gradient adjustment)
+      const timeSeconds = gradeAdjDistanceKm * gap * 60;
+      
+      totalAdjustedTime += timeSeconds;
+    }
+    
+    return totalAdjustedTime;
+  };
 
   return (
     <div style={{ width: '100%', margin: '80px auto 0 auto', paddingTop: 16 }}>
@@ -77,7 +127,7 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
       >
         Major Climbs
       </Typography>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, gap: 12 }}>
         <button
           style={{
             padding: '6px 16px',
@@ -91,6 +141,20 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
           onClick={() => setNoTimeData(v => !v)}
         >
           {noTimeData ? 'Show Time Data' : 'No Time Data'}
+        </button>
+        <button
+          style={{
+            padding: '6px 16px',
+            borderRadius: 6,
+            border: '1px solid #1976d2',
+            background: editSplits ? '#1976d2' : '#f8fafc',
+            color: editSplits ? '#fff' : '#1976d2',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+          onClick={() => setEditSplits(v => !v)}
+        >
+          {editSplits ? 'Hide Splits' : 'Edit Splits'}
         </button>
       </div>
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
@@ -154,6 +218,29 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                 <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 700, color: '#2a72e5'}}>
                   Adj. VAM<br/>(at GAP) (m/h)
                 </th>
+                {/* Add these right before the closing </tr> in the thead section */}
+                {editSplits && (
+                  <>
+                    <th style={{ 
+                      padding: 10, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#2e7d32' 
+                    }}>
+                      New GAP<br/>(min/km)
+                    </th>
+                    <th style={{ 
+                      padding: 10, 
+                      borderBottom: '2px solid #e0e0e0', 
+                      textAlign: 'center', 
+                      fontWeight: 600, 
+                      color: '#2e7d32' 
+                    }}>
+                      New Time<br/>(at New GAP)
+                    </th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -270,36 +357,7 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                       </>
                     )}
                     <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center', color: '#2a72e5', fontWeight: 700 }}>
-                      {(() => {
-                        let adjTimeAtGap = null;
-                        if (Array.isArray(bins) && bins.length > 0 && climb.start != null && climb.distance != null) {
-                          // 1. Build array of bin end distances (in km)
-                          let binEndDistances = [];
-                          let cumDist = 0;
-                          for (let bin of bins) {
-                            cumDist += (bin.distance || 0) / 1000; // m to km
-                            binEndDistances.push(cumDist);
-                          }
-                          // 2. Find bin indices covering the climb segment
-                          const climbStartKm = climb.start;
-                          const climbEndKm = climb.start + climb.distance;
-                          // Find first bin whose end distance >= climbStartKm
-                          let binStartIdx = binEndDistances.findIndex(d => d >= climbStartKm);
-                          if (binStartIdx === -1) binStartIdx = 0;
-                          // Find last bin whose end distance >= climbEndKm
-                          let binEndIdx = binEndDistances.findIndex(d => d >= climbEndKm);
-                          if (binEndIdx === -1) binEndIdx = bins.length - 1;
-                          // 3. Sum adjustedTime for bins in this range
-                          let adjTime = 0;
-                          for (let i = binStartIdx; i <= binEndIdx; i++) {
-                            if (bins[i] && typeof bins[i].adjustedTime === 'number' && isFinite(bins[i].adjustedTime)) {
-                              adjTime += bins[i].adjustedTime;
-                            }
-                          }
-                          adjTimeAtGap = adjTime;
-                        }
-                        return adjTimeAtGap != null ? formatTime(adjTimeAtGap) : '—';
-                      })()}
+                      {adjTimeAtGap != null ? formatTime(adjTimeAtGap) : '—'}
                     </td>
                     <td style={{
                       padding: 10,
@@ -307,10 +365,72 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                       textAlign: 'center',
                       color: '#2a72e5',
                       fontWeight: 700,
-                      
                     }}>
                       {adjVam}
                     </td>
+                    
+                    {/* FIXED: Removed duplicate edit columns and kept only the proper one */}
+                    {editSplits && (
+                      <>
+                        <td style={{ 
+                          padding: 10, 
+                          borderBottom: '1px solid #e0e0e0', 
+                          textAlign: 'center', 
+                          fontWeight: 600,
+                          color: '#2e7d32' 
+                        }}>
+                          <input
+                            type="text"
+                            value={formatMinSec(newGapArr[idx] || defaultGap)}
+                            onChange={e => {
+                              const val = e.target.value;
+                              const parsed = parseMinSec(val);
+                              if (!isNaN(parsed)) {
+                                setNewGapArr(arr => {
+                                  const newArr = [...arr];
+                                  newArr[idx] = parsed;
+                                  return newArr;
+                                });
+                              }
+                            }}
+                            onBlur={e => {
+                              const parsed = parseMinSec(e.target.value);
+                              if (isNaN(parsed)) {
+                                setNewGapArr(arr => {
+                                  const newArr = [...arr];
+                                  newArr[idx] = defaultGap;
+                                  return newArr;
+                                });
+                              }
+                            }}
+                            style={{
+                              width: 60,
+                              border: '1px solid #e0e7ef',
+                              borderRadius: 6,
+                              padding: '4px 6px',
+                              background: '#f8fafc',
+                              fontWeight: 600,
+                              color: '#2e7d32',
+                              textAlign: 'center'
+                            }}
+                            placeholder="0:00"
+                          />
+                        </td>
+                        <td style={{ 
+                          padding: 10, 
+                          borderBottom: '1px solid #e0e0e0', 
+                          textAlign: 'center', 
+                          fontWeight: 700,
+                          color: '#2e7d32' 
+                        }}>
+                          {(() => {
+                            // Calculate the new time based on custom GAP, properly adjusted for gradient
+                            const newTime = calculateNewClimbTime(climb, newGapArr[idx] || defaultGap, bins);
+                            return newTime ? formatTime(newTime) : '—';
+                          })()}
+                        </td>
+                      </>
+                    )}
                   </tr>
                 );
               })}
@@ -319,6 +439,7 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                 <td style={{ padding: 10, borderTop: '2px solid #bdbdbd' }}>Total ({filteredClimbs.length} climbs)</td>
                 <td />
                 <td style={{ padding: 10, borderTop: '2px solid #bdbdbd', textAlign: 'center' }}>{totalGain}</td>
+                <td colSpan={editSplits ? 9 : 7} /> {/* FIXED: Adjusted colSpan based on the actual column count */}
               </tr>
             </tbody>
           </table>
