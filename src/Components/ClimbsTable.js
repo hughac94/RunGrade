@@ -4,30 +4,17 @@ import { extractTime, formatTime, formatMinSec } from './gpxAnalysis';
 
 function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, newAdjustedVelocity, bins, setClimbs }) {
   const [noTimeData, setNoTimeData] = useState(false);
-  const [editSplits, setEditSplits] = useState(false); // State for editSplits
-  const [newGapArr, setNewGapArr] = useState([]); // State for new GAP values
+  const [editSplits, setEditSplits] = useState(false);
+  const [newGapArr, setNewGapArr] = useState([]);
+  const [tempGapInputs, setTempGapInputs] = useState({});
   const defaultGap = 5; // Default GAP value in min/km
 
-  // Filter out climbs with gain of 0
-  const filteredClimbs = climbs.filter(climb => climb.gain > 0);
-
+  // Initialize newGapArr when climbs change
   useEffect(() => {
-    // Initialize with default GAP for all climbs
-    setNewGapArr(filteredClimbs.map(() => defaultGap));
-  }, [filteredClimbs, defaultGap]);
-  
-  // Allow climb renaming
-  const handleNameChange = (idx, newName) => {
-    if (!setClimbs) return;
-    setClimbs(prevClimbs => {
-      const updated = prevClimbs.map((climb, i) =>
-        i === idx ? { ...climb, name: newName } : climb
-      );
-      return updated;
-    });
-  };
+    setNewGapArr(climbs.map(() => defaultGap));
+  }, [climbs, defaultGap]);
 
-  // helper
+  // Helper for min:sec parsing
   const parseMinSec = str => {
     if (!str) return NaN;
     const parts = str.split(':');
@@ -36,12 +23,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
     if (isNaN(min) || isNaN(sec) || min < 0 || sec < 0 || sec >= 60) return NaN;
     return min + sec / 60;
   };
-
-  // Calculate totals
-  let totalGain = 0;
-  filteredClimbs.forEach(climb => {
-    totalGain += climb.gain || 0;
-  });
 
   // Helper: Calculate total climbing (sum of all positive elevation changes) between two route indices
   function getTotalClimbingGain(route, startIdx, endIdx) {
@@ -60,11 +41,11 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
     return Math.round(gain);
   }
 
+  // Calculate new time for a climb using gradeAdjustedDistance from bins
   const calculateNewClimbTime = (climb, gap, bins) => {
     if (!climb || !climb.gain || !climb.distance || !bins || !Array.isArray(bins)) {
       return null;
     }
-    
     // Find which bins are part of this climb
     let binEndDistances = [];
     let cumDist = 0;
@@ -72,32 +53,28 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
       cumDist += (bin.distance || 0) / 1000; // m to km
       binEndDistances.push(cumDist);
     }
-    
-    // Determine which bins fall within this climb
     const climbStartKm = climb.start;
     const climbEndKm = climb.start + climb.distance;
     let binStartIdx = binEndDistances.findIndex(d => d >= climbStartKm);
     if (binStartIdx === -1) binStartIdx = 0;
     let binEndIdx = binEndDistances.findIndex(d => d >= climbEndKm);
     if (binEndIdx === -1) binEndIdx = bins.length - 1;
-    
-    // Calculate time based on gradeAdjustedDistance - this is the key change!
     let totalAdjustedTime = 0;
     for (let i = binStartIdx; i <= binEndIdx; i++) {
       const bin = bins[i];
       if (!bin || typeof bin.gradeAdjustedDistance !== 'number' || !isFinite(bin.gradeAdjustedDistance)) continue;
-      
-      // Use gradeAdjustedDistance instead of applying our own adjustment factor
       const gradeAdjDistanceKm = bin.gradeAdjustedDistance / 1000; // Convert to km
-      
-      // Calculate time using the new GAP pace directly (no need for gradient adjustment)
       const timeSeconds = gradeAdjDistanceKm * gap * 60;
-      
       totalAdjustedTime += timeSeconds;
     }
-    
     return totalAdjustedTime;
   };
+
+  // Calculate totals
+  let totalGain = 0;
+  climbs.forEach(climb => {
+    if (climb.gain > 0) totalGain += climb.gain;
+  });
 
   return (
     <div style={{ width: '100%', margin: '80px auto 0 auto', paddingTop: 16 }}>
@@ -181,7 +158,7 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
           />
         </label>
       </div>
-      {filteredClimbs.length === 0 ? (
+      {climbs.filter(climb => climb.gain > 0).length === 0 ? (
         <div style={{ textAlign: 'center', color: '#888' }}>
           (No climbs detected yet)
         </div>
@@ -204,7 +181,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                 <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>Height Gain (m)</th>
                 <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>Distance (km)</th>
                 <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>Avg Gradient (%)</th>
-                {/* Conditionally render time columns */}
                 {!noTimeData && (
                   <>
                     <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>Elapsed</th>
@@ -218,7 +194,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                 <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 700, color: '#2a72e5'}}>
                   Adj. VAM<br/>(at GAP) (m/h)
                 </th>
-                {/* Add these right before the closing </tr> in the thead section */}
                 {editSplits && (
                   <>
                     <th style={{ 
@@ -244,7 +219,9 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
               </tr>
             </thead>
             <tbody>
-              {filteredClimbs.map((climb, idx) => {
+              {climbs.map((climb, idx) => {
+                if (!climb.gain || climb.gain <= 0) return null;
+
                 const startIdx = climb.startIdx;
                 const endIdx = climb.endIdx;
 
@@ -265,7 +242,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                   }
                 }
 
-                // Calculate elapsed time from start of GPX to start of climb
                 let elapsedFromStart = '—';
                 if (
                   firstTime instanceof Date && !isNaN(firstTime) &&
@@ -277,13 +253,11 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                   }
                 }
 
-                // Calculate VAM (vertical ascent meters per hour)
                 let vam = '—';
                 if (climbSeconds && climb.gain && climbSeconds > 0) {
                   vam = Math.round((climb.gain / climbSeconds) * 3600);
                 }
 
-                // Calculate total climbing gain using route points (CheckpointsTable logic)
                 const totalClimbingGain = getTotalClimbingGain(route, climb.startIdx, climb.endIdx);
 
                 // Calculate adjusted time at GAP (seconds)
@@ -310,7 +284,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                   adjTimeAtGap = adjTime;
                 }
 
-                // Calculate Adj. VAM (at GAP) (m/h)
                 let adjVam = '—';
                 if (adjTimeAtGap && climb.gain && adjTimeAtGap > 0) {
                   adjVam = Math.round((climb.gain / adjTimeAtGap) * 3600);
@@ -324,7 +297,14 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                       <input
                         type="text"
                         value={climb.name || ''}
-                        onChange={e => handleNameChange(idx, e.target.value)}
+                        onChange={e => {
+                          if (!setClimbs) return;
+                          setClimbs(prevClimbs => {
+                            const updated = [...prevClimbs];
+                            updated[idx] = { ...updated[idx], name: e.target.value };
+                            return updated;
+                          });
+                        }}
                         style={{
                           width: 120,
                           border: '1px solid #e0e7ef',
@@ -342,7 +322,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                     <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>{climb.gain}</td>
                     <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>{climb.distance}</td>
                     <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>{climb.avgGradient}</td>
-                    {/* Conditionally render time columns */}
                     {!noTimeData && (
                       <>
                         <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>
@@ -351,7 +330,7 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                         <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>
                            { elapsedFromStart}
                         </td>
-                        <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center', borderRadius: idx === filteredClimbs.length - 1 ? '0 0 12px 0' : undefined }}>
+                        <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center', borderRadius: idx === climbs.filter(climb => climb.gain > 0).length - 1 ? '0 0 12px 0' : undefined }}>
                           { vam}
                         </td>
                       </>
@@ -368,8 +347,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                     }}>
                       {adjVam}
                     </td>
-                    
-                    {/* FIXED: Removed duplicate edit columns and kept only the proper one */}
                     {editSplits && (
                       <>
                         <td style={{ 
@@ -381,10 +358,10 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                         }}>
                           <input
                             type="text"
-                            value={formatMinSec(newGapArr[idx] || defaultGap)}
+                            value={tempGapInputs[idx] !== undefined ? tempGapInputs[idx] : formatMinSec(newGapArr[idx] || defaultGap)}
                             onChange={e => {
-                              const val = e.target.value;
-                              const parsed = parseMinSec(val);
+                              setTempGapInputs(prev => ({ ...prev, [idx]: e.target.value }));
+                              const parsed = parseMinSec(e.target.value);
                               if (!isNaN(parsed)) {
                                 setNewGapArr(arr => {
                                   const newArr = [...arr];
@@ -394,6 +371,11 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                               }
                             }}
                             onBlur={e => {
+                              setTempGapInputs(prev => {
+                                const updated = {...prev};
+                                delete updated[idx];
+                                return updated;
+                              });
                               const parsed = parseMinSec(e.target.value);
                               if (isNaN(parsed)) {
                                 setNewGapArr(arr => {
@@ -424,7 +406,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                           color: '#2e7d32' 
                         }}>
                           {(() => {
-                            // Calculate the new time based on custom GAP, properly adjusted for gradient
                             const newTime = calculateNewClimbTime(climb, newGapArr[idx] || defaultGap, bins);
                             return newTime ? formatTime(newTime) : '—';
                           })()}
@@ -434,12 +415,13 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                   </tr>
                 );
               })}
-              {/* Total row */}
               <tr style={{ background: '#e8f5e9', fontWeight: 700 }}>
-                <td style={{ padding: 10, borderTop: '2px solid #bdbdbd' }}>Total ({filteredClimbs.length} climbs)</td>
+                <td style={{ padding: 10, borderTop: '2px solid #bdbdbd' }}>
+                  Total ({climbs.filter(climb => climb.gain > 0).length} climbs)
+                </td>
                 <td />
                 <td style={{ padding: 10, borderTop: '2px solid #bdbdbd', textAlign: 'center' }}>{totalGain}</td>
-                <td colSpan={editSplits ? 9 : 7} /> {/* FIXED: Adjusted colSpan based on the actual column count */}
+                <td colSpan={editSplits ? 9 : 7} />
               </tr>
             </tbody>
           </table>
