@@ -239,7 +239,7 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
     const currentY = item.payload.y;  // This is the actual Y value we want
     
     // Find matching point in the other dataset
-    const thisDataset = item.name === label1 ? data1 : data2;
+    
     const otherDataset = item.name === label1 ? data2 : data1;
     
     const matchingPoint = otherDataset.find(point => 
