@@ -211,19 +211,61 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
               dataKey="y"
               name="Pace (min/km)"
               label={{ value: 'Pace (min/km)', angle: -90, position: 'insideLeft', offset: 10 }}
-              domain={[2, 12]}
-              ticks={[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]} 
+              domain={(() => {
+                  // Get the maximum pace value from both datasets
+                  const maxPace1 = data1.length ? Math.max(...data1.map(point => point.y)) : 2;
+                  const maxPace2 = data2.length ? Math.max(...data2.map(point => point.y)) : 2;
+                  
+                  // Get the overall maximum and add 10% padding
+                  const maxPace = Math.max(maxPace1, maxPace2);
+                  const paddedMax = Math.ceil(maxPace * 1.1);
+                  
+                  // Ensure minimum high enough (at least 8 min/km) for visibility
+                  return [2, Math.max(8, paddedMax)];
+                })()}
               reversed
               tickFormatter={formatMinSec}
               tickCount={11}
             />
-            <Tooltip
-              formatter={(value) => formatMinSec(value)}
-              labelFormatter={mid => {
-                const group = gradientGroups.find(g => g.mid === mid);
-                return group ? group.label : mid;
-              }}
-            />
+         <Tooltip
+  content={({ active, payload }) => {
+    if (!active || !payload || !payload.length) return null;
+    
+    const item = payload[0];
+    if (!item) return null;
+    
+    // Important fix: access pace through the payload.payload object
+    const currentX = item.payload.x;
+    const currentY = item.payload.y;  // This is the actual Y value we want
+    
+    // Find matching point in the other dataset
+    const thisDataset = item.name === label1 ? data1 : data2;
+    const otherDataset = item.name === label1 ? data2 : data1;
+    
+    const matchingPoint = otherDataset.find(point => 
+      Math.abs(point.x - currentX) < 0.01  // Allow small tolerance for floating point
+    );
+    
+    // Format percentage difference
+    let diffText = 'No comparison data';
+    if (matchingPoint && currentY > 0 && matchingPoint.y > 0) {
+      const percentDiff = ((currentY - matchingPoint.y) / matchingPoint.y * 100).toFixed(1);
+      diffText = `${percentDiff}% difference`;
+    }
+    
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #ccc',
+        padding: '5px 10px',
+        borderRadius: '4px'
+      }}>
+        <div>{formatMinSec(currentY)}</div>
+        <div style={{ fontSize: '12px' }}>{diffText}</div>
+      </div>
+    );
+  }}
+/>
             <Legend verticalAlign="top" content={<CustomLegend />} />
             <Scatter name={label1} data={data1} fill={FILE1_COLOR} shape="circle" strokeWidth={4}/>
             <Scatter name={label2} data={data2} fill={FILE2_COLOR} shape="diamond" strokeWidth={4}/>
