@@ -212,8 +212,10 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
               name="Pace (min/km)"
               label={{ value: 'Pace (min/km)', angle: -90, position: 'insideLeft', offset: 10 }}
               domain={[2, 12]}
+              ticks={[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]} 
               reversed
               tickFormatter={formatMinSec}
+              tickCount={11}
             />
             <Tooltip
               formatter={(value) => formatMinSec(value)}
