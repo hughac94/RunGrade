@@ -191,7 +191,7 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
           >
           Average Pace by Gradient
         </Typography>
-        <ResponsiveContainer width="100%" height={500}>
+        <ResponsiveContainer width="100%" height={650}>
           <ScatterChart margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
             <CartesianGrid stroke="#ccc" strokeDasharray="4 4" strokeWidth={2} />
             <XAxis
