@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Typography } from '@mui/material';
 import { formatMinSec, formatHMS, formatTime, extractTime } from './gpxAnalysis';
+import { exportCheckpointsToCSV } from './exporttoExcel';
 
 /**
  * CheckpointsTable component displays and manages a table of checkpoints,
@@ -20,6 +21,8 @@ function CheckpointsTable({
   const [noTimeData, setNoTimeData] = useState(false);
   const [editSplits, setEditSplits] = useState(false);
   const [newGapArr, setNewGapArr] = useState([]);
+  const [showNutrition, setShowNutrition] = useState(false);
+  const [carbGramsArr, setCarbGramsArr] = useState([]);
 
   // Maximum route distance (km)
   const maxDistance = distances.length > 0 ? distances[distances.length - 1] : 0;
@@ -248,6 +251,11 @@ function CheckpointsTable({
     idx === 0 ? 0 : val - newTimeOverallArr[idx - 1]
   );
 
+useEffect(() => {
+  setCarbGramsArr(checkpoints.map(() => 0));
+}, [checkpoints]);
+
+
   // === Render ===
   return (
     <div style={{ width: '100%', margin: '80px 0 0 0', paddingTop: 16 }}>
@@ -310,6 +318,54 @@ function CheckpointsTable({
         >
           {editSplits ? 'Hide Splits' : 'Edit Splits'}
         </button>
+        <button
+            style={{
+              padding: '6px 16px',
+              borderRadius: 6,
+              border: '1px solid #1976d2',
+              background: showNutrition ? '#1976d2' : '#f8fafc',
+              color: showNutrition ? '#fff' : '#1976d2',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+            onClick={() => setShowNutrition(v => !v)}
+          >
+            {showNutrition ? 'Hide Nutrition' : 'Add Nutrition'}
+          </button>
+          <button
+            style={{
+              padding: '6px 16px',
+              borderRadius: 6,
+              border: '1px solid #1976d2',
+              background: '#f8fafc',
+              color: '#1976d2',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+            onClick={() => exportCheckpointsToCSV({
+              checkpoints,
+              noTimeData,
+              editSplits,
+              showNutrition,
+              newGapArr,
+              modelledGapMinutes,
+              newTimeOverallArr,
+              newTimeFromPreviousArr,
+              carbGramsArr,
+              formatMinSec,
+              formatHMS,
+              formatTime,
+              getElevationGainToIdx,
+              findRouteIdxForKm,
+              adjFromStartArr,
+              adjFromPrevArr,
+              bins,
+              route,
+              distances
+            })}
+          >
+            Export to CSV
+          </button>
       </div>
       {/* Input for adding new checkpoints */}
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
@@ -501,6 +557,28 @@ function CheckpointsTable({
                     }}>New Time from Previous<br/>(hh:mm:ss)</th>
                   </>
                 )}
+                {showNutrition && (
+                  <>
+                    <th style={{
+                      width: '10%',
+                      padding: 6,
+                      borderBottom: '2px solid #e0e0e0',
+                      background: '#f5f7fa',
+                      textAlign: 'center',
+                      fontWeight: 600,
+                      color: '#b8860b'
+                    }}>Carbs (g)</th>
+                    <th style={{
+                      width: '10%',
+                      padding: 6,
+                      borderBottom: '2px solid #e0e0e0',
+                      background: '#f5f7fa',
+                      textAlign: 'center',
+                      fontWeight: 600,
+                      color: '#b8860b'
+                    }}>Carbs/hr</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -666,6 +744,47 @@ function CheckpointsTable({
                        <td style={{ padding: 10, textAlign: 'center', fontWeight: isEnd ? 700 : undefined, color: '#2e7d32' }}>
                         {formatHMS(newTimeFromPreviousArr[idx])}
                       </td>
+                      </>
+                    )}
+                    {showNutrition && (
+                      <>
+                        <td style={{ padding: 10, textAlign: 'center', color: '#b8860b', fontWeight: isEnd ? 700 : undefined }}>
+                          <input
+                            type="number"
+                            min={0}
+                            value={carbGramsArr[idx] || ''}
+                            onChange={e => {
+                              const val = parseInt(e.target.value, 10);
+                              setCarbGramsArr(arr => {
+                                const newArr = [...arr];
+                                newArr[idx] = isNaN(val) ? 0 : val;
+                                return newArr;
+                              });
+                            }}
+                            style={{
+                              width: 60,
+                              border: '1px solid #e0e7ef',
+                              borderRadius: 6,
+                              padding: '4px 6px',
+                              background: '#f8fafc',
+                              fontWeight: 700,
+                              color: '#b8860b',
+                              textAlign: 'center'
+                            }}
+                            placeholder="0"
+                          />
+                        </td>
+                        <td style={{ padding: 10, textAlign: 'center', color: '#b8860b', fontWeight: isEnd ? 700 : undefined }}>
+                          {(() => {
+                            // Use newTimeFromPreviousArr[idx] (seconds) for the denominator
+                            const grams = carbGramsArr[idx] || 0;
+                            const secs = newTimeFromPreviousArr[idx] || 0;
+                            if (!grams || !secs) return '-';
+                            const hours = secs / 3600;
+                            if (hours === 0) return '-';
+                            return Math.round(grams / hours);
+                          })()}
+                        </td>
                       </>
                     )}
                   </tr>
