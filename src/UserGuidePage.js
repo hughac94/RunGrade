@@ -22,7 +22,7 @@ export default function UserGuidePage() {
         RunGrade
       </Typography>
       <Typography sx={{ mb: 2, fontWeight: 600, fontSize: 'inherit' }}>
-        Welcome to RunGrade - Hugh's GPX analysis app for ultrarunning!
+        Welcome to RunGrade - Hugh's GPX analysis app for ultrarunning!!!
       </Typography>
       <Typography sx={{ mb: 3, fontSize: 'inherit' }}>
         The app is broken up into a few pages:
