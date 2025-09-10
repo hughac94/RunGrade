@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MapView from './Components/MapView';
 import GPXParser from 'gpxparser';
 import {
@@ -9,13 +9,16 @@ import {
   Checkbox,
   FormControlLabel,
   Button,
-  Box
+  Box,
+  IconButton
 } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import StopIcon from '@mui/icons-material/Stop';
 import { useCesiumIframe } from './Components/CesiumRecentre';
 
 const COLORS = ['orange', 'blue', 'red', 'green', 'purple'];
-
 
 function formatElapsed(ms) {
   if (ms == null) return '';
@@ -28,7 +31,6 @@ function formatElapsed(ms) {
     .join(':');
 }
 
-
 export default function RacingSnakes() {
   const [show3D, setShow3D] = useState(false);
   const [routes, setRoutes] = useState([[], [], [], [], []]);
@@ -39,17 +41,77 @@ export default function RacingSnakes() {
   const [sliderValue, setSliderValue] = useState(0);
   const [showPolyline, setShowPolyline] = useState([true, true, true, true, true]);
   
-
-// Calculate max duration (ms) among all loaded runners
-const maxDurationMs = Math.max(
-  ...routes.map(route =>
-    route.length > 1
-      ? new Date(route[route.length - 1].time) - new Date(route[0].time)
-      : 0
-  )
-);
+  // Add tooltip toggle state
+  const [showTooltips, setShowTooltips] = useState(true);
   
-const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
+  // Playthrough state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(10); // seconds to complete playback
+  const intervalRef = useRef(null);
+
+  // Calculate max duration (ms) among all loaded runners
+  const maxDurationMs = Math.max(
+    ...routes.map(route =>
+      route.length > 1
+        ? new Date(route[route.length - 1].time) - new Date(route[0].time)
+        : 0
+    )
+  );
+  
+  const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
+
+  // Playthrough functions
+  const startPlayback = () => {
+    if (maxDurationMs <= 0) return;
+    
+    setIsPlaying(true);
+    setSliderValue(0);
+    
+    const updateInterval = 50; // Update every 50ms for smooth animation
+    const totalSteps = (playbackSpeed * 1000) / updateInterval;
+    const stepSize = maxDurationMs / totalSteps;
+    
+    intervalRef.current = setInterval(() => {
+      setSliderValue(prev => {
+        const nextValue = prev + stepSize;
+        if (nextValue >= maxDurationMs) {
+          // Playback complete
+          setIsPlaying(false);
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+          return maxDurationMs;
+        }
+        return nextValue;
+      });
+    }, updateInterval);
+  };
+
+  const pausePlayback = () => {
+    setIsPlaying(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  const stopPlayback = () => {
+    setIsPlaying(false);
+    setSliderValue(0);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // Clean up interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   // GPX file handler for each runner
   const handleFileChange = idx => e => {
@@ -108,9 +170,6 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
     });
   };
 
-
- 
-
   // Prepare runners array for MapView
   const runners = [0,1,2,3,4].map(idx => {
     const route = routes[idx];
@@ -118,9 +177,6 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
     if (!route.length) return {
       route, distances: dists, runnerName: runnerNames[idx], elapsed: '', distance: '', color: COLORS[idx], showPolyline: showPolyline[idx], posIdx: 0
     };
-
-    
-
 
     // Find the point at (start time + sliderValue)
     let posIdx = 0;
@@ -135,9 +191,6 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
         posIdx = i;
       }
     }
-
-
-
 
     // Calculate elapsed and distance for this runner at posIdx
     const start = route[0]?.time ? new Date(route[0].time) : null;
@@ -161,8 +214,7 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
     show3D,
     runners,
     sliderValue,
-    });
-
+  });
 
   // At least one route loaded?
   const anyRouteLoaded = routes.some(r => r.length > 1);
@@ -170,37 +222,114 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
   return (
     <div style={{ maxWidth: 1200, margin: '32px auto', padding: 16 }}>
       <Box
-  sx={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 2,
-    mb: 3,
-    p: 2,
-    borderRadius: 2,
-    boxShadow: 2,
-    background: '#f8fafc',
-    maxWidth: 300,
-  }}
->
-  <Typography variant="subtitle1" sx={{ fontWeight: 500, color: "#333", mr: 1, whiteSpace: 'nowrap', }}>
-    Toggle map:
-  </Typography>
-  <Button
-    variant="contained"
-    color={show3D ? "success" : "primary"}
-    onClick={() => setShow3D(v => !v)}
-    sx={{
-      fontWeight: 700,
-      fontSize: 16,
-      px: 3,
-      py: 1.2,
-      whiteSpace: 'nowrap', // ensures text stays on one line
-      transition: 'background 0.2s',
-    }}
-  >
-    {show3D ? "Show 2D Map" : "Show 3D Map"}
-  </Button>
-</Box>
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          mb: 3,
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 2,
+          background: '#f8fafc',
+          maxWidth: 300,
+        }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 500, color: "#333", mr: 1, whiteSpace: 'nowrap', }}>
+          Toggle map:
+        </Typography>
+        <Button
+          variant="contained"
+          color={show3D ? "success" : "primary"}
+          onClick={() => setShow3D(v => !v)}
+          sx={{
+            fontWeight: 700,
+            fontSize: 16,
+            px: 3,
+            py: 1.2,
+            whiteSpace: 'nowrap',
+            transition: 'background 0.2s',
+          }}
+        >
+          {show3D ? "Show 2D Map" : "Show 3D Map"}
+        </Button>
+      </Box>
+
+      {/* Playback Controls */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          mb: 2,
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 1,
+          background: '#fff',
+          flexWrap: 'wrap',
+        }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 500, color: "#333" }}>
+          Playback:
+        </Typography>
+        <IconButton
+          onClick={isPlaying ? pausePlayback : startPlayback}
+          disabled={!anyRouteLoaded}
+          color="primary"
+          sx={{ 
+            bgcolor: isPlaying ? 'warning.light' : 'success.light',
+            '&:hover': {
+              bgcolor: isPlaying ? 'warning.main' : 'success.main',
+            }
+          }}
+        >
+          {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+        </IconButton>
+        <IconButton
+          onClick={stopPlayback}
+          disabled={!anyRouteLoaded}
+          color="secondary"
+          sx={{ 
+            bgcolor: 'error.light',
+            '&:hover': {
+              bgcolor: 'error.main',
+            }
+          }}
+        >
+          <StopIcon />
+        </IconButton>
+        <TextField
+          label="Duration (sec)"
+          type="number"
+          size="small"
+          value={playbackSpeed}
+          onChange={e => setPlaybackSpeed(Math.max(1, Number(e.target.value)))}
+          sx={{ width: 120 }}
+          inputProps={{ min: 1, max: 60 }}
+        />
+        <Typography variant="body2" color="text.secondary">
+          {isPlaying ? 'Playing...' : 'Ready'}
+        </Typography>
+        
+        {/* Tooltip Toggle Button */}
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => setShowTooltips(prev => !prev)}
+          sx={{
+            ml: 2,
+            fontWeight: 500,
+            borderColor: showTooltips ? 'success.main' : 'grey.400',
+            color: showTooltips ? 'success.main' : 'grey.600',
+            '&:hover': {
+              borderColor: showTooltips ? 'success.dark' : 'grey.600',
+              color: showTooltips ? 'success.dark' : 'grey.800',
+            }
+          }}
+        >
+          {showTooltips ? '🏷️ Hide Tooltips' : '🏷️ Show Tooltips'}
+        </Button>
+      </Box>
+
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <input
           type="range"
@@ -208,7 +337,7 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
           max={maxDurationMs}
           step={1000}
           value={sliderValue}
-          disabled={!anyRouteLoaded}
+          disabled={!anyRouteLoaded || isPlaying}
           onChange={e => setSliderValue(Number(e.target.value))}
           style={{ width: 1200 }}
         />
@@ -226,68 +355,68 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
         )}
       </div>
       <div
-  style={{
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    gap: 16,
-    marginBottom: 16,
-    overflowX: 'auto',
-    width: '100%',
-  }}
->
-  {[0,1,2,3,4].map(idx => (
-    <Card key={idx} sx={{ minWidth: 170, maxWidth: 190, background: '#f7f7fa', boxShadow: 2, flex: '0 0 auto' }}>
-      <CardContent>
-        <Typography variant="h6" sx={{ color: COLORS[idx], fontWeight: 700, mb: 1 }}>
-          Runner {idx + 1}
-        </Typography>
-        <Button
-          variant={gpxFileNames[idx] ? "contained" : "outlined"}
-          color={gpxFileNames[idx] ? "success" : "primary"}
-          component="label"
-          startIcon={<UploadFileIcon />}
-          sx={{ mb: 1, width: '100%' }}
-        >
-          {gpxFileNames[idx] ? gpxFileNames[idx] : "Upload GPX"}
-          <input
-            type="file"
-            accept=".gpx"
-            hidden
-            onChange={handleFileChange(idx)}
-          />
-        </Button>
-        <TextField
-          label="Name"
-          size="small"
-          value={runnerNames[idx]}
-          onChange={handleNameChange(idx)}
-          fullWidth
-          sx={{ mb: 1 }}
-          InputProps={{
-            style: { borderColor: COLORS[idx] }
-          }}
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={showPolyline[idx]}
-              onChange={e => {
-                setShowPolyline(prev => {
-                  const next = [...prev];
-                  next[idx] = e.target.checked;
-                  return next;
-                });
-              }}
-              sx={{ color: COLORS[idx] }}
-            />
-          }
-          label="Show Polyline"
-        />
-      </CardContent>
-    </Card>
-  ))}
-</div>
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          gap: 16,
+          marginBottom: 16,
+          overflowX: 'auto',
+          width: '100%',
+        }}
+      >
+        {[0,1,2,3,4].map(idx => (
+          <Card key={idx} sx={{ minWidth: 170, maxWidth: 190, background: '#f7f7fa', boxShadow: 2, flex: '0 0 auto' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: COLORS[idx], fontWeight: 700, mb: 1 }}>
+                Runner {idx + 1}
+              </Typography>
+              <Button
+                variant={gpxFileNames[idx] ? "contained" : "outlined"}
+                color={gpxFileNames[idx] ? "success" : "primary"}
+                component="label"
+                startIcon={<UploadFileIcon />}
+                sx={{ mb: 1, width: '100%' }}
+              >
+                {gpxFileNames[idx] ? gpxFileNames[idx] : "Upload GPX"}
+                <input
+                  type="file"
+                  accept=".gpx"
+                  hidden
+                  onChange={handleFileChange(idx)}
+                />
+              </Button>
+              <TextField
+                label="Name"
+                size="small"
+                value={runnerNames[idx]}
+                onChange={handleNameChange(idx)}
+                fullWidth
+                sx={{ mb: 1 }}
+                InputProps={{
+                  style: { borderColor: COLORS[idx] }
+                }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={showPolyline[idx]}
+                    onChange={e => {
+                      setShowPolyline(prev => {
+                        const next = [...prev];
+                        next[idx] = e.target.checked;
+                        return next;
+                      });
+                    }}
+                    sx={{ color: COLORS[idx] }}
+                  />
+                }
+                label="Show Polyline"
+              />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
       <div style={{ width: '100%', height: 600, borderRadius: 8, overflow: 'hidden' }}>
         {show3D ? (
           <iframe
@@ -303,6 +432,7 @@ const [gpxFileNames, setGpxFileNames] = useState(['', '', '', '', '']);
             sliderValue={sliderValue}
             downsample={false}
             checkpoints={[]}
+            showTooltips={showTooltips}
           />
         )}
       </div>

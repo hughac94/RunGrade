@@ -21,6 +21,7 @@ import Slider from '@mui/material/Slider';
 import TextField from '@mui/material/TextField';
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
 import CheckpointsComparisonTable from './Components/CheckpointsComparisonTable';
+import RaceChart from './Components/RaceChart';
 
 // helper functions for trimming and snapping
 
@@ -556,6 +557,37 @@ const sectionStats2 = section2.length ? {
         label1={runner1Name}
         label2={runner2Name}
       />
+
+      {/* The Race chart section */}
+      <Box sx={{ my: 6, p: 3, background: '#f8fafc', borderRadius: 4 }}>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 900,
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+            color: 'primary.main',
+            textAlign: 'center',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            background: 'linear-gradient(90deg, #e3f2fd 0%, #f8fafc 100%)',
+            boxShadow: 1,
+            fontSize: { xs: 20, sm: 26 },
+            mb: 3,
+          }}
+        >
+          The Race
+        </Typography>
+        <RaceChart
+          route1={route1}
+          route2={route2}
+          label1={runner1Name}
+          label2={runner2Name}
+        />
+      </Box>
+
+
     </div>
     
   )

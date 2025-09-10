@@ -13,6 +13,7 @@ function MapView({
   runners, 
   sliderValue,
   selectedSection = null,
+  showTooltips = true, // Add this prop
 }) {
   // Move all hooks to the top before any early returns
   const [zoom, setZoom] = useState(13);
@@ -284,15 +285,17 @@ function MapView({
                 opacity: 1,
               }}
             >
-              <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent>
-                <div>
-                  <strong>{runnerName}</strong>
-                  <br />
-                  {distance} km
-                  <br />
-                  {elapsed}
-                </div>
-              </Tooltip>
+              {showTooltips && (
+                <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent>
+                  <div>
+                    <strong>{runnerName}</strong>
+                    <br />
+                    {distance} km
+                    <br />
+                    {elapsed}
+                  </div>
+                </Tooltip>
+              )}
             </CircleMarker>
           );
         })}
