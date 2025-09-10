@@ -49,7 +49,7 @@ function MainPage() {
   const [climbs, setClimbs] = useState([]); // Only declare once
   const [polyCoeffs] = useStravaPolyCoeffs();
   const [show3D, setShow3D] = useState(false);
-  
+  const [selectedSection, setSelectedSection] = useState(null);
 
   // Convert input pace (min:sec/km) to m/s
   const inputGapPaceMs = useMemo(() => {
@@ -393,6 +393,7 @@ function MainPage() {
                 downsample={downsample}
                 downsampleFactor={downsampleFactor}
                 checkpoints={checkpoints}
+                selectedSection={selectedSection}
               />
             )}
           </div>
@@ -402,6 +403,8 @@ function MainPage() {
               selectedLat={selectedIdx != null ? fullRoute[selectedIdx].lat : null}
               selectedLon={selectedIdx != null ? fullRoute[selectedIdx].lon : null}
               checkpoints={checkpoints}
+              onPointSelect={setSelectedIdx}
+              onSectionSelect={setSelectedSection}
               />
         </div>
       </div>
