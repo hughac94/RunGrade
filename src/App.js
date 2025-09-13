@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import MainPage from './MainPage';
 import GPXComparisonPage from './GPXComparisonPage';
 import GAPDetailpage from './GAPDetailpage';
 import RacingSnakes from './RacingSnakes';
-import RunnerProfilePage from './RunnerProfilePage'; // 🆕 Import new page
+import RunnerProfilePage from './RunnerProfilePage';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Tabs from '@mui/material/Tabs';
@@ -14,56 +14,122 @@ import UserGuidePage from './UserGuidePage';
 import { formatPoly4 } from './Components/StravadataCleaner';
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
 
-// main app
 
+// --- Support Button and Popup ---
+function SupportButtonAndPopup() {
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    const alreadyShown = localStorage.getItem('bmcPopupShown');
+    if (!alreadyShown) {
+      const timer = setTimeout(() => {
+        setShowPopup(true);
+        localStorage.setItem('bmcPopupShown', 'true');
+      }, 1800); // 3 minutes
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  return (
+    <>
+      {/* Permanent button */}
+      <a
+        href="https://www.buymeacoffee.com/hughchat"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 1000,
+          background: '#FFDD00',
+          color: '#333',
+    padding: '12px 22px',
+    borderRadius: 24,
+    fontWeight: 700,
+    boxShadow: '0 2px 8px #0002',
+    textDecoration: 'none',
+    fontSize: 16,
+    textAlign: 'center', // <-- center align
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 180,
+        }}
+      >
+  Enjoying the app? <br />
+  <span style={{ fontSize: 18, marginTop: 4 }}>
+    💷 Click here to contribute
+  </span>
+</a>
+
+      {/* Timed pop-up */}
+      {showPopup && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: '#fff',
+          padding: 32,
+          borderRadius: 16,
+          boxShadow: '0 4px 32px #0003',
+          zIndex: 1001,
+          maxWidth: 340,
+          textAlign: 'center',
+        }}>
+          <h3 style={{ marginTop: 0 }}>Enjoying RunGrade?</h3>
+          <p>I hope so! I've put a  bunch of hours into building the tool. Please consider supporting!</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+            <a
+              href="https://www.buymeacoffee.com/hughchat"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-block',
+                background: '#FFDD00',
+                color: '#333',
+                padding: '10px 18px',
+                borderRadius: 20,
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 18,
+              }}
+            >
+              💷 Click here to contribute
+            </a>
+            <button
+              onClick={() => setShowPopup(false)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 20,
+                border: 'none',
+                background: '#eee',
+                color: '#333',
+                fontWeight: 500,
+                fontSize: 16,
+                cursor: 'pointer',
+              }}
+            >
+              No thanks, not right now
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// --- Main App ---
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [polyCoeffs] = useStravaPolyCoeffs();
 
-  // Map each route to a tab index - 🆕 Add runner-profile route
   const tabRoutes = ['/user-guide', '/single-gpx', '/multi-gpx', '/racing-snakes', '/runner-profile', '/detail'];
   const tabValue = tabRoutes.indexOf(location.pathname);
   const safeTabValue = tabValue === -1 ? 0 : tabValue;
-
-  // --- Password Lock State ---
-  const [unlocked, setUnlocked] = useState(() => localStorage.getItem('unlocked') === 'true');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  // Simple password (change as needed)
-  const CORRECT_PASSWORD = 'EliteTrailTeam!';
-
-  const handleUnlock = (e) => {
-    e.preventDefault();
-    if (password === CORRECT_PASSWORD) {
-      setUnlocked(true);
-      localStorage.setItem('unlocked', 'true');
-    } else {
-      setError('Incorrect password');
-    }
-  };
-
-  if (!unlocked) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-        <form onSubmit={handleUnlock} style={{ background: '#fff', padding: 32, borderRadius: 8, boxShadow: '0 2px 16px #0001', minWidth: 320 }}>
-          <h2 style={{ marginBottom: 16 }}>Enter Password</h2>
-          <input
-            type="password"
-            value={password}
-            onChange={e => { setPassword(e.target.value); setError(''); }}
-            style={{ width: '100%', padding: 8, fontSize: 18, marginBottom: 12, borderRadius: 4, border: '1px solid #ccc' }}
-            autoFocus
-          />
-          <button type="submit" style={{ width: '100%', padding: 10, fontSize: 18, borderRadius: 4, background: '#1976d2', color: '#fff', border: 'none' }}>
-            Unlock
-          </button>
-          {error && <div style={{ color: 'red', marginTop: 10 }}>{error}</div>}
-        </form>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -114,11 +180,11 @@ function App() {
               }}
             >
               <Tab label={<span>📖 User Guide</span>} />
-              <Tab label={<span>🏠 Single GPX File</span>} />
+              <Tab label={<span>🏠 Single GPX</span>} />
               <Tab label={<span>🚀 Two GPX Files</span>} />
               <Tab label={<span>🐍 Racing Snakes</span>} />
-              <Tab label={<span>👤 Runner Profile</span>} /> {/* 🆕 New tab */}
-              <Tab label={<span>📐 GAP Maths Detail</span>} />
+              <Tab label={<span>👤 Runner Profile</span>} />
+              <Tab label={<span>📐 "G-A-P" Detail</span>} />
             </Tabs>
           </Box>
         </Toolbar>
@@ -129,7 +195,7 @@ function App() {
         <Route path="/single-gpx" element={<MainPage />} />
         <Route path="/multi-gpx" element={<GPXComparisonPage />} />
         <Route path="/racing-snakes" element={<RacingSnakes />} />
-        <Route path="/runner-profile" element={<RunnerProfilePage />} /> {/* 🆕 New route */}
+        <Route path="/runner-profile" element={<RunnerProfilePage />} />
         <Route
           path="/detail"
           element={
@@ -139,9 +205,9 @@ function App() {
             />
           }
         />
-        {/* Catch-all route for any unmatched paths */}
         <Route path="*" element={<Navigate to="/user-guide" replace />} />
       </Routes>
+      <SupportButtonAndPopup />
     </>
   );
 }

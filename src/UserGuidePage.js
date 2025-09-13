@@ -21,45 +21,46 @@ export default function UserGuidePage() {
       >
         RunGrade
       </Typography>
-      <Typography sx={{ mb: 2, fontWeight: 600, fontSize: 'inherit' }}>
-        Welcome to RunGrade - Hugh's GPX analysis app for ultrarunning!!!
+      <Typography sx={{ mb: 2, fontSize: 'inherit' }}>
+  This app uses <b>Grade Adjusted Pace (GAP)</b> to power a suite of tools for planning your next ultra or race, and for analyzing your performance.
+</Typography>
+      <div
+  style={{
+    paddingLeft: 24,
+    paddingTop: 12,
+    paddingBottom: 12,
+    marginBottom: 24,
+    fontSize: 'inherit',
+  }}
+>
+  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+    <span role="img" aria-label="Single GPX" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>🏠</span>
+    <span style={{ fontSize: 'inherit' }}><b>Single GPX:</b> Plan your next ultra – estimate total time, checkpoint splits, climb times, predict the weather through the race, and more!</span>
+  </div>
+  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+    <span role="img" aria-label="Two GPX" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>🚀</span>
+    <span style={{ fontSize: 'inherit' }}><b>Two GPX Files:</b> Compare two runners or runs side-by-side... who's climbed better? how big was the gap after an hour?</span>
+  </div>
+  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+    <span role="img" aria-label="Racing Snakes" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>🐍</span>
+    <span style={{ fontSize: 'inherit' }}><b>Racing Snakes:</b> Visualize races with up to 5 runners... a 10 hour race in 30 seconds!</span>
+  </div>
+  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+    <span role="img" aria-label="Runner Profile" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>👤</span>
+    <span style={{ fontSize: 'inherit' }}><b>Runner Profile:</b> Create your own grade adjusted pace model and understand where you could improve</span>
+  </div>
+  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+    <span role="img" aria-label="GAP Detail" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>📐</span>
+    <span style={{ fontSize: 'inherit' }}><b>G-A-P Detail:</b> Unpick the maths behind grade-adjusted pace.</span>
+  </div>
+</div>
+      <Typography sx={{ mb: 2, fontSize: 'inherit' }}>
+        <b>Tip:</b> Use <a href="https://www.sauce.llc/" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>Strava Sauce</a> to download others' race files.
       </Typography>
-      <Typography sx={{ mb: 3, fontSize: 'inherit' }}>
-        The app is broken up into a few pages:
-      </Typography>
-      <ol style={{ paddingLeft: 24, fontSize: 'inherit' }}>
-        <li style={{ marginBottom: 16 }}>
-          <b>Single GPX File:</b> Upload and analyze a single run you have done or route you have yet to do. See key route stats, 2d and 3d visualisations, analyse the key climbs, see time spent at different gradients, predict checkpoint and route times using GAP / Grade-Adjusted Pace!
-        </li>
-        <li style={{ marginBottom: 16 }}>
-          <b>Two GPX Files:</b> Compare two runs side-by-side. You vs. past you? You vs. the race winner? See differences in pace, time, uphill/downhill speeds, and relative speed as the race progressed.
-        </li>
-        <li style={{ marginBottom: 16 }}>
-          <b>Racing Snakes:</b> Visualize in 2 or 3d a past race with up to 5 runners, using a slider to see how the race unfolded and where people were at key points. Dive into a 3d mode to see exactly where all the runners were at any point.
-        </li>
-        <li style={{ marginBottom: 16 }}>
-          <b>GAP Maths Detail:</b> Dive into the math behind GAP, or grade-adjusted pace, calculations. These power estimations for time taken on hilly mountainous routes when GCSE maths won't cut it!
-        </li>
-      </ol>
-      <Typography sx={{ mb: 3, fontSize: 'inherit' }}>
-        <b>Tips:</b>
-        <ul style={{ paddingLeft: 24, fontSize: 'inherit' }}>
-          <li>Some GPX files are notty and full of bugs. The app has some in-built, 'advanced' cleaning and parsing tools which often - not always! - help</li>
-          <li>In 3D maps, hold ctrl and click and drag to change your N-S orientation and see mountains side on</li>
-          <li>Remember GAP is just an estimate based on data, it's never going to account for all the nuances of a race or course</li>
-        </ul>
-      </Typography>
-      <Typography sx={{ mb: 3, fontSize: 'inherit' }}>
-        <b>Pro Tips:</b> <i>- Where just normal tips don't cut it</i>
-        <ul style={{ paddingLeft: 24, fontSize: 'inherit' }}>
-          <li style={{ marginBottom: 16 }}>
-            <b>Finding GPX files:</b> Use <a href="https://www.sauce.llc/" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>Strava Sauce</a> to find and download GPX files from your friends, enemies, idols, and competitors from their Strava pages
-          </li>
-        </ul>
-      </Typography>
-      <Typography sx={{ mb: 3, fontSize: 'inherit' }}>
-        For more help, contact Hugh!
-      </Typography>
+      <Typography sx={{ mb: 2, fontSize: 'inherit' }}>
+  Need help? <a href="https://www.instagram.com/hughs_there/?hl=en" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>Contact Hugh</a>...<br />
+  And consider supporting the effort (link bottom right)!
+</Typography>
     </PageContainer>
   );
 }

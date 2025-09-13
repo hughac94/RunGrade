@@ -40,8 +40,7 @@ function RunnerProfilePage() {
           mx: 'auto'
         }}
       >
-        This page will allow you to create and manage your runner profile, 
-        including personal records, training history, and performance analytics.
+        This page will allow you to create a GAP model specific to you and your running and identify areas to improve.
       </Typography>
     </Box>
   );
