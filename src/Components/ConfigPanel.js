@@ -83,7 +83,7 @@ export default function ConfigPanel({
 
       {showGapInput && (
         <>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 2 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 2, color: '#1976d2'  }}>
             ⚡ Input Grade Adjusted Pace:
           </Typography>
           <Grid container spacing={1} alignItems="center" sx={{ mt: 1 }}>

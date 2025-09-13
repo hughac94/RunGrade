@@ -64,8 +64,8 @@ export default function GPXComparisonPage() {
   const [smoothElevation1, setSmoothElevation1] = useState(false);
   const [smoothingWindow1, setSmoothingWindow1] = useState(5);
   const [polyCoeffs] = useStravaPolyCoeffs();
-  const [inputGapMin1, setInputGapMin1] = useState(4);
-  const [inputGapSec1, setInputGapSec1] = useState(30);
+  const [inputGapMin1, setInputGapMin1] = useState(5);
+  const [inputGapSec1, setInputGapSec1] = useState(0);
   const [inputGapPaceMs1, setInputGapPaceMs1] = useState(0);
   const [bins1, setBins1] = useState([]);
   

@@ -20,12 +20,12 @@ function SupportButtonAndPopup() {
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
-    const alreadyShown = localStorage.getItem('bmcPopupShown');
+    const alreadyShown = sessionStorage.getItem('bmcPopupShown');
     if (!alreadyShown) {
       const timer = setTimeout(() => {
         setShowPopup(true);
-        localStorage.setItem('bmcPopupShown', 'true');
-      }, 1800); // 3 minutes
+        sessionStorage.setItem('bmcPopupShown', 'true');
+      }, 180000); // 3 minutes
       return () => clearTimeout(timer);
     }
   }, []);
