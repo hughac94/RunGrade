@@ -253,66 +253,69 @@ function MainPage() {
 
   return (
     <div style={{ width: '100vw', padding: 20, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
-      {/* Header: Logo left, controls right */}
+      <Typography
+        variant="h5"
+        sx={{
+          fontWeight: 900,
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+          color: 'primary.main',
+          textAlign: 'center',
+          px: 2,
+          py: 1,
+          borderRadius: 2,
+          background: 'linear-gradient(90deg, #e3f2fd 0%, #f8fafc 100%)',
+          boxShadow: 1,
+          fontSize: { xs: 20, sm: 26 },
+          mb: 3,
+        }}
+      >
+        File Upload
+      </Typography>
       <div
         style={{
           display: 'flex',
-          alignItems: 'stretch',
-          justifyContent: 'space-between',
-          marginBottom: 32,
+          alignItems: 'flex-start', // <-- ensures tops are aligned
+          justifyContent: 'center',
+          gap: 40,
           width: '100%',
           maxWidth: 1200,
           marginLeft: 'auto',
-          marginRight: 'auto'
+          marginRight: 'auto',
+          marginBottom: 0,
         }}
       >
         {/* Logo on the left */}
-        <div style={{ display: 'flex', alignItems: 'stretch' }}>
+        <div
+          style={{
+            minHeight: 500,
+            maxHeight: 500,
+            minWidth: 280,
+            maxWidth: 280,
+            display: 'flex',
+            alignItems: 'flex-start', // <-- aligns image to top
+            justifyContent: 'center',
+            background: 'none',
+            padding: 0,
+            margin: 0,
+          }}
+        >
           <img
             src={process.env.PUBLIC_URL + '/logo192.png'}
             alt="RunGrade Logo"
             style={{
+              width: '100%',
               height: '100%',
-              maxHeight: 450,
-              width: 'auto',
-              borderRadius: 12,
-              marginRight: 16,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
               objectFit: 'contain',
-              display: 'block'
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              display: 'block',
             }}
           />
         </div>
 
-        {/* Centered Title */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <Typography
-            variant="h2"
-            className="rungrade-flash"
-            sx={{
-                fontWeight: 800,
-                letterSpacing: 2,
-                fontSize: { xs: 28, sm: 36, md: 44 },
-                textAlign: 'center',
-                userSelect: 'none',
-                fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-                lineHeight: 1.1,
-            }}
-          >
-            RunGrade
-          </Typography>
-        </div>
-
-        {/* Controls on the right */}
+        {/* Config panel on the right */}
         <ConfigPanel
-          title="Choose me first:"
           showGapInput={true}
           handleFileChange={handleFileChange}
           selectedFileName={selectedFileName}
@@ -328,6 +331,7 @@ function MainPage() {
           removePauses={removePauses}
           setRemovePauses={setRemovePauses}
           pauseThreshold={pauseThreshold}
+          panelMinHeight={500}
           setPauseThreshold={setPauseThreshold}
           smoothElevation={smoothElevation}
           setSmoothElevation={setSmoothElevation}
@@ -335,7 +339,6 @@ function MainPage() {
           setSmoothingWindow={setSmoothingWindow}
           binLength={binLength}
           setBinLength={setBinLength}
-         
         />
       </div>
 

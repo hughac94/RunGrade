@@ -10,11 +10,10 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-
+import SettingsIcon from '@mui/icons-material/Settings';
 
 export default function ConfigPanel({
-  title = "Configure File",
+
   showGapInput = true,
   handleFileChange,
   selectedFileName,
@@ -27,6 +26,7 @@ export default function ConfigPanel({
   setDownsample,
   downsampleFactor,
   setDownsampleFactor,
+  panelMinHeight,
   binLength,
   setBinLength,
   removePauses,
@@ -37,10 +37,8 @@ export default function ConfigPanel({
   setSmoothElevation,
   smoothingWindow,
   setSmoothingWindow,
-  snapAndTrim,
-  setSnapAndTrim,
 }) {
-  
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
 
   return (
     <Paper
@@ -51,22 +49,13 @@ export default function ConfigPanel({
         mb: 3,
         background: 'rgba(245,247,250,0.95)',
         maxWidth: 700,
-        minWidth: 320,
+        minWidth: 500,
+        minHeight: panelMinHeight,
         fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
         fontSize: 16,
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: 700,
-          mb: 2,
-          textAlign: 'center',
-          letterSpacing: 1,
-        }}
-      >
-        {title}
-      </Typography>
+      
 
       <Button
         component="label"
@@ -129,112 +118,112 @@ export default function ConfigPanel({
         </>
       )}
 
-      <Stack spacing={2} sx={{ mt: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={downsample}
-                onChange={e => setDownsample(e.target.checked)}
-              />
-            }
-            label="Downsample polyline"
-          />
-          {downsample && (
-            <TextField
-              type="number"
-              label="Every Nth"
-              size="small"
-              inputProps={{ min: 2, max: 50 }}
-              value={downsampleFactor}
-              onChange={e => setDownsampleFactor(Number(e.target.value))}
-              sx={{ width: 80 }}
-            />
-          )}
-        </Stack>
+      {/* Advanced file config toggle */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 3, mb: 1 }}>
+        <Button
+          variant="text"
+          startIcon={<SettingsIcon />}
+          sx={{ fontWeight: 700, fontSize: 16, textTransform: 'none', color: '#1976d2', px: 2 }}
+          onClick={() => setShowAdvanced(v => !v)}
+        >
+          Advanced file configuration
+        </Button>
+      </Box>
 
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={removePauses}
-                onChange={e => setRemovePauses(e.target.checked)}
-              />
-            }
-            label="Remove pauses longer than"
-          />
-          <TextField
-            type="number"
-            label="(s)"
-            size="small"
-            inputProps={{ min: 1, max: 3600 }}
-            value={pauseThreshold}
-            onChange={e => setPauseThreshold(Number(e.target.value))}
-            sx={{ width: 100 }}
-            disabled={!removePauses}
-          />
-        </Stack>
-
-        {/* Bin length control */}
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Box sx={{ width: 2 }} />
-          <Typography fontWeight={500} color="text.primary" fontSize={16}>
-            Set bin length for splitting up GPX file
-          </Typography>
-          <TextField
-            type="number"
-            label="Bin length (m)"
-            size="small"
-            inputProps={{ min: 10, max: 1000 }}
-            value={binLength}
-            onChange={e => setBinLength(Number(e.target.value))}
-            sx={{ width: 120 }}
-          />
-          <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-            m
-          </Typography>
-        </Stack>
-
-        {/* Smoothing window control (inside "Smooth elevation" stack) */}
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={smoothElevation}
-                onChange={e => setSmoothElevation(e.target.checked)}
-              />
-            }
-            label="Smooth elevation"
-          />
-          {smoothElevation && (
-            <TextField
-              type="number"
-              label="Window"
-              size="small"
-              inputProps={{ min: 3, max: 51, step: 2 }}
-              value={smoothingWindow}
-              onChange={e => setSmoothingWindow(Number(e.target.value))}
-              sx={{ width: 80 }}
-            />
-          )}
-        </Stack>
-
-        {/* Only show Snap and trim if props are provided */}
-        {typeof snapAndTrim !== "undefined" && typeof setSnapAndTrim === "function" && (
+      {showAdvanced && (
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          {/* Downsample polyline */}
           <Stack direction="row" alignItems="center" spacing={2}>
             <FormControlLabel
               control={
-                <Switch
-                  checked={snapAndTrim}
-                  onChange={e => setSnapAndTrim(e.target.checked)}
-                  color="primary"
+                <Checkbox
+                  checked={downsample}
+                  onChange={e => setDownsample(e.target.checked)}
                 />
               }
-              label="Snap and trim"
+              label="Downsample polyline"
+            />
+            {downsample && (
+              <TextField
+                type="number"
+                label="Every Nth"
+                size="small"
+                inputProps={{ min: 2, max: 50 }}
+                value={downsampleFactor}
+                onChange={e => setDownsampleFactor(Number(e.target.value))}
+                sx={{ width: 80 }}
+              />
+            )}
+          </Stack>
+
+          {/* Remove pauses */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={removePauses}
+                  onChange={e => setRemovePauses(e.target.checked)}
+                />
+              }
+              label="Remove pauses longer than"
+            />
+            <TextField
+              type="number"
+              label="(s)"
+              size="small"
+              inputProps={{ min: 1, max: 3600 }}
+              value={pauseThreshold}
+              onChange={e => setPauseThreshold(Number(e.target.value))}
+              sx={{ width: 100 }}
+              disabled={!removePauses}
             />
           </Stack>
-        )}
-      </Stack>
+
+          {/* Bin length control */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box sx={{ width: 2 }} />
+            <Typography fontWeight={500} color="text.primary" fontSize={16}>
+              Set bin length for splitting up GPX file
+            </Typography>
+            <TextField
+              type="number"
+              label="Bin length (m)"
+              size="small"
+              inputProps={{ min: 10, max: 1000 }}
+              value={binLength}
+              onChange={e => setBinLength(Number(e.target.value))}
+              sx={{ width: 120 }}
+            />
+            <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+              m
+            </Typography>
+          </Stack>
+
+          {/* Smoothing window control */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={smoothElevation}
+                  onChange={e => setSmoothElevation(e.target.checked)}
+                />
+              }
+              label="Smooth elevation"
+            />
+            {smoothElevation && (
+              <TextField
+                type="number"
+                label="Window"
+                size="small"
+                inputProps={{ min: 3, max: 51, step: 2 }}
+                value={smoothingWindow}
+                onChange={e => setSmoothingWindow(Number(e.target.value))}
+                sx={{ width: 80 }}
+              />
+            )}
+          </Stack>
+        </Stack>
+      )}
     </Paper>
   );
 }
