@@ -68,7 +68,7 @@ function hasValidTimeData(bins) {
   });
 }
 
-export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, checkpoints }) {
+export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, checkpoints, noTimeData }) {
 
 
   // Elapsed time: first to last timestamp
@@ -155,12 +155,13 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
       color: colorPalette[1],
       label: "Elevation Gain"
     },
-    {
+    // Only show if noTimeData is false
+    ...(!noTimeData ? [{
       icon: "⏱️",
       value: elapsedTime != null ? formatTime(elapsedTime) : 'no time data',
       color: colorPalette[2],
       label: "Total Elapsed Time"
-    },
+    }] : []),
     ...(pauseTimeRemoved > 0
       ? [{
           icon: "⏸️",
@@ -169,17 +170,27 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
           label: "Time Removed Due to Pauses"
         }]
       : []),
-    {
+    // Only show if noTimeData is false
+    ...(!noTimeData ? [{
       icon: "🏃‍♂️",
       value: validTime && validOverallGradeAdjPace
         ? formatMinSec(overallGradeAdjPace) + " min/km"
         : 'no time data',
       color: colorPalette[4],
       label: "Overall Grade Adjusted Pace"
-    },
+    }] : []),
     {
       icon: "⏩",
-      value: avgPaceStr,
+      value: noTimeData
+        ? (() => {
+            // Calculate using Adj Total Time for new GAP and distance
+            const distKm = stats.distance || 0;
+            const adjTimeMins = adjTotalTimeSecs / 60;
+            return distKm > 0 && adjTotalTimeSecs > 0
+              ? `${formatMinSec(adjTimeMins / distKm)} min/km`
+              : 'n/a';
+          })()
+        : avgPaceStr,
       color: colorPalette[5],
       label: "Average Pace"
     },

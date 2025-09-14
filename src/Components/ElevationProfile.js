@@ -8,18 +8,22 @@ import {
 
 // Helper: interpolate color by gradient (HSL for smooth transition)
 function getGradientColor(gradient) {
-  // Clamp gradient between -30% and +30%
+  // Clamp gradient between -50% and +50%
   const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
-  const g = clamp(gradient, -30, 30);
-  
-  // Map gradient to color:
-  // +30% (steep up) = red (0°)
-  // 0% (flat) = green (120°) 
-  // -30% (steep down) = blue (240°)
-  const hue = 120 - (g / 30) * 120;
-  
-  return `hsl(${hue}, 70%, 45%)`;
+  const g = clamp(gradient, -50, 50);
+
+  if (g < -15) return '#1976d2';      // steep descent - blue
+  if (g < -10) return '#2196f3';      // descent - lighter blue
+  if (g < -5)  return '#00bcd4';      // moderate descent - cyan
+  if (g < -2)  return '#43a047';      // slight descent - green
+  if (g < 2)   return '#888888';      // flat - grey
+  if (g < 5)   return '#fbc02d';      // slight climb - yellow
+  if (g < 10)  return '#fb8c00';      // moderate climb - orange
+  if (g < 15)  return '#f44336';      // climb - red-orange
+  return '#d32f2f';                   // steep climb - red
 }
+
+
 
 function ElevationProfileRecharts({ points, selectedLat, selectedLon, checkpoints = [], onPointSelect, onSectionSelect }) {
   // State for drag selection - moved to top before any early returns
@@ -32,14 +36,17 @@ function ElevationProfileRecharts({ points, selectedLat, selectedLon, checkpoint
   if (!points || points.length < 2) return null;
 
   // Prepare data with immediate gradient calculation (no smoothing window)
+  const windowSize = 20; // Wide smoothing
+
   let totalDist = 0;
   const data = points.map((pt, i, arr) => {
     let gradient = 0;
     let segmentDist = 0;
-    
+
+    // Calculate distance from previous point
     if (i > 0) {
-      const [lat1, lon1, elev1] = arr[i - 1];
-      const [lat2, lon2, elev2] = pt;
+      const [lat1, lon1] = arr[i - 1];
+      const [lat2, lon2] = pt;
       const R = 6371000;
       const toRad = deg => deg * Math.PI / 180;
       const dLat = toRad(lat2 - lat1);
@@ -52,19 +59,49 @@ function ElevationProfileRecharts({ points, selectedLat, selectedLon, checkpoint
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       segmentDist = R * c;
       totalDist += segmentDist;
-      
-      // Calculate gradient for this specific segment
+    }
+
+    // Window smoothing for gradient
+    if (i >= windowSize) {
+      const start = arr[i - windowSize];
+      const end = pt;
+      // Only use elevation for gradient, ignore lat/lon
+      const elev1 = start[2];
+      const elev2 = end[2];
+
+      // Calculate window distance
+      let windowDist = 0;
+      for (let j = i - windowSize + 1; j <= i; j++) {
+        const [latA, lonA] = arr[j - 1];
+        const [latB, lonB] = arr[j];
+        const R = 6371000;
+        const toRad = deg => deg * Math.PI / 180;
+        const dLat = toRad(latB - latA);
+        const dLon = toRad(lonB - lonA);
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(latA)) *
+            Math.cos(toRad(latB)) *
+            Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        windowDist += R * c;
+      }
+      gradient = windowDist > 0 ? ((elev2 - elev1) / windowDist) * 100 : 0;
+    } else if (i > 0) {
+      const elev1 = arr[i - 1][2];
+      const elev2 = pt[2];
       gradient = segmentDist > 0 ? ((elev2 - elev1) / segmentDist) * 100 : 0;
     }
-    
+
+    const color = getGradientColor(gradient);
     return {
       distance: totalDist / 1000,
       elevation: pt[2],
       lat: pt[0],
       lon: pt[1],
       gradient: gradient,
-      color: getGradientColor(gradient),
-      originalIndex: i // Add original index to map back to points array
+      color: color,
+      originalIndex: i
     };
   });
 

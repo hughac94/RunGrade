@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Typography } from '@mui/material';
 import {
   LineChart,
@@ -53,8 +53,8 @@ function Bar({ value, max, color = "#1976d2", width = 100, label = "" }) {
 }
 // === END ADDED ===
 
-export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4 }) {
-  const [noTimeData, setNoTimeData] = useState(false);
+export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4, noTimeData }) {
+  
 
   const gradientGroups = [
     { label: '< -20', min: -Infinity, max: -20 },
@@ -194,20 +194,6 @@ export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4 
       {/* Table */}
       <div style={{ marginTop: 24, width: '100%', maxWidth: 1000, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-          <button
-            style={{
-              padding: '6px 16px',
-              borderRadius: 6,
-              border: '1px solid #bbb',
-              background: noTimeData ? '#2563eb' : '#f8fafc',
-              color: noTimeData ? '#fff' : '#222',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-            onClick={() => setNoTimeData(v => !v)}
-          >
-            {noTimeData ? 'Show Time Data' : 'No Time Data'}
-          </button>
         </div>
         <table style={{
           width: '100%',

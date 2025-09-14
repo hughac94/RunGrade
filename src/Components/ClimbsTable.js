@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography } from '@mui/material'; 
 import { extractTime, formatTime, formatMinSec } from './gpxAnalysis';
 
-function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, newAdjustedVelocity, bins, setClimbs }) {
-  const [noTimeData, setNoTimeData] = useState(false);
+function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, newAdjustedVelocity, bins, setClimbs, noTimeData }) {
   const [editSplits, setEditSplits] = useState(false);
   const [newGapArr, setNewGapArr] = useState([]);
   const [tempGapInputs, setTempGapInputs] = useState({});
@@ -105,20 +104,6 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
         Major Climbs
       </Typography>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, gap: 12 }}>
-        <button
-          style={{
-            padding: '6px 16px',
-            borderRadius: 6,
-            border: '1px solid #bbb',
-            background: noTimeData ? '#2563eb' : '#f8fafc',
-            color: noTimeData ? '#fff' : '#222',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-          onClick={() => setNoTimeData(v => !v)}
-        >
-          {noTimeData ? 'Show Time Data' : 'No Time Data'}
-        </button>
         <button
           style={{
             padding: '6px 16px',
