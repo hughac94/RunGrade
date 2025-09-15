@@ -1,16 +1,6 @@
-import React from 'react';
-import { Typography } from '@mui/material';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend
-} from 'recharts';
-
-
+import React, { useState } from 'react';
+import { Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 function parseTimeToSeconds(timeStr) {
   if (!timeStr) return 0;
@@ -24,6 +14,13 @@ function formatTime(secs) {
   const m = Math.floor((secs % 3600) / 60);
   const s = Math.floor(secs % 60);
   return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatPaceMMSS(decimalMinutes) {
+  if (!decimalMinutes || !isFinite(decimalMinutes)) return 'n/a';
+  const min = Math.floor(decimalMinutes);
+  const sec = Math.round((decimalMinutes - min) * 60);
+  return `${min}:${sec.toString().padStart(2, '0')}`;
 }
 
 function formatPace(decimalMinutes) {
@@ -54,7 +51,8 @@ function Bar({ value, max, color = "#1976d2", width = 100, label = "" }) {
 // === END ADDED ===
 
 export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4, noTimeData }) {
-  
+  // === CHANGED: Segment size state with presets ===
+  const [segmentSize, setSegmentSize] = useState(500);
 
   const gradientGroups = [
     { label: '< -20', min: -Infinity, max: -20 },
@@ -151,21 +149,80 @@ export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4,
   const maxTime = Math.max(...groupStats.map(row => row.time || 0));
   const maxAvgPace = Math.max(...groupStats.map(row => row.avgPace || 0));
   const maxGradeAdjPace = Math.max(...groupStats.map(row => row.gradeAdjPace || 0));
-  const maxDistance = Math.max(...groupStats.map(row => row.totalDistance || 0));
   const maxAdjTime = Math.max(...groupStats.map(row => row.totalAdjustedTime || 0));
   const maxUserGapPace = Math.max(...groupStats.map(row => row.userGapPace || 0));
+  const maxDistance = Math.max(...groupStats.map(row => row.totalDistance || 0));
   // === END ADDED ===
+
+  // --- Build segmentData for the chart ---
+  let segmentData = [];
+  if (Array.isArray(bins) && bins.length > 0) {
+    let currentSegment = [];
+    let currentSegmentDist = 0;
+    let segmentStartDist = 0;
+
+    bins.forEach(bin => {
+      const binDist = typeof bin.distance === 'number' ? bin.distance : 0;
+      currentSegment.push(bin);
+      currentSegmentDist += binDist;
+
+      if (currentSegmentDist >= segmentSize) { // <-- use segmentSize from state
+        const totalGradeAdjDistance = currentSegment
+          .map(b => typeof b.gradeAdjustedDistance === 'number' ? b.gradeAdjustedDistance : 0)
+          .reduce((a, b) => a + b, 0);
+        const totalTime = currentSegment
+          .map(b => parseTimeToSeconds(b.timeTaken))
+          .reduce((a, b) => a + b, 0);
+        const segmentGradeAdjPace = (totalGradeAdjDistance > 0 && totalTime > 0)
+          ? (totalTime / 60) / (totalGradeAdjDistance / 1000)
+          : null;
+
+        segmentData.push({
+          distance: (segmentStartDist + currentSegmentDist / 2) / 1000,
+          medianGradeAdjPace: segmentGradeAdjPace
+        });
+
+        segmentStartDist += currentSegmentDist;
+        currentSegment = [];
+        currentSegmentDist = 0;
+      }
+    });
+
+    // Handle last segment
+    if (currentSegment.length > 0) {
+      const totalGradeAdjDistance = currentSegment
+        .map(b => typeof b.gradeAdjustedDistance === 'number' ? b.gradeAdjustedDistance : 0)
+        .reduce((a, b) => a + b, 0);
+      const totalTime = currentSegment
+        .map(b => parseTimeToSeconds(b.timeTaken))
+        .reduce((a, b) => a + b, 0);
+      const segmentGradeAdjPace = (totalGradeAdjDistance > 0 && totalTime > 0)
+        ? (totalTime / 60) / (totalGradeAdjDistance / 1000)
+        : null;
+
+      segmentData.push({
+        distance: (segmentStartDist + currentSegmentDist / 2) / 1000,
+        medianGradeAdjPace: segmentGradeAdjPace
+      });
+    }
+  }
 
   // Set a constant for column width
   const COL_WIDTH = 140;
 
-  // Prepare data for Recharts
-  const chartData = groupStats.map(row => ({
-    label: row.label,
-    avgPace: row.avgPace,
-    gradeAdjPace: row.gradeAdjPace
-  }));
+const minPace = Math.min(...segmentData.map(d => d.medianGradeAdjPace || Infinity));
+const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
 
+  // Calculate max distance for x-axis domain
+  const maxSegmentDistance = segmentData.length > 0
+    ? Math.max(...segmentData.map(d => d.distance || 0))
+    : 0;
+
+  // Calculate reasonable tick intervals for axes
+  const xTickInterval = maxSegmentDistance > 10 ? 2 : 1;
+  const yTickInterval = 0.5; // 30 seconds in min/km
+
+  // --- Chart rendering ---
   return (
     <div style={{ width: '100%', margin: '0 auto 40px auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Title */}
@@ -191,6 +248,8 @@ export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4,
           Time at Gradients
         </Typography>
       </div>
+      {/* === CHANGED: Segment size preset buttons with label === */}
+      
       {/* Table */}
       <div style={{ marginTop: 24, width: '100%', maxWidth: 1000, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
@@ -260,8 +319,13 @@ export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4,
                     {/* Grade Adj. Pace */}
                     <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center', minWidth: COL_WIDTH }}>
                       {/* === CHANGED: Use Bar === */}
-                      <Bar value={row.gradeAdjPace} max={maxGradeAdjPace} color="#0288d1" width={COL_WIDTH}
-                        label={formatPace(row.gradeAdjPace)} />
+                      <Bar
+                        value={row.gradeAdjPace}
+                        max={maxGradeAdjPace}
+                        color="#0288d1"
+                        width={COL_WIDTH}
+                        label={formatPace(row.gradeAdjPace)}
+                      />
                     </td>
                   </>
                 )}
@@ -314,51 +378,64 @@ export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4,
           </tbody>
         </table>
       </div>
-      {/* Chart below table */}
-      {!noTimeData && (
-        <div style={{ width: '100%', maxWidth: 1000, margin: '24px auto 0 auto' }}>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData}>
-              <XAxis
-                dataKey="label"
-                label={{ value: 'Gradient Group', position: 'insideBottom', offset: -5 }}
-                tick={{ fontSize: 14 }}
-              />
-              <YAxis
-                label={{ value: 'Pace (min/km)', angle: -90, position: 'insideLeft', fontSize: 16 }}
-                tick={{ fontSize: 14 }}
-                domain={['auto', 'auto']}
-              />
-              <Tooltip
-                formatter={(value, name) =>
-                  [typeof value === 'number' ? value.toFixed(2) : value, name === 'avgPace' ? 'Average Pace' : 'Grade Adjusted Pace']
-                }
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="avgPace"
-                name="Average Pace"
-                stroke="green"
-                strokeWidth={3}
-                dot={{ r: 5 }}
-                activeDot={{ r: 7 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="gradeAdjPace"
-                name="Grade Adjusted Pace"
-                stroke="blue"
-                strokeDasharray="5 5"
-                strokeWidth={3}
-                dot={{ r: 5 }}
-                activeDot={{ r: 7 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+      <div style={{ margin: '16px 0', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ marginRight: 16, fontWeight: 500, fontSize: 16 }}>Choose segment size:</span>
+        <ToggleButtonGroup
+          value={segmentSize}
+          exclusive
+          onChange={(_, value) => value && setSegmentSize(value)}
+          aria-label="segment size"
+          size="small"
+        >
+          <ToggleButton value={100} aria-label="100m">100m</ToggleButton>
+          <ToggleButton value={500} aria-label="500m">500m</ToggleButton>
+          <ToggleButton value={1000} aria-label="1km">1km</ToggleButton>
+          <ToggleButton value={5000} aria-label="5km">5km</ToggleButton>
+        </ToggleButtonGroup>
+      </div>
+      <div style={{ marginTop: 40, width: '100%', maxWidth: 1600 }}>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={segmentData}>
+            {/* Consistently spaced grid lines */}
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="distance"
+              type="number"
+              domain={[0, maxSegmentDistance]} // <-- Set domain to actual max distance
+              label={{ value: 'Distance (km)', position: 'insideBottom', offset: -5 }}
+              tickFormatter={v => v.toFixed(1)}
+              interval={0}
+              tickCount={Math.ceil(maxSegmentDistance / xTickInterval) + 1}
+            />
+            <YAxis
+              domain={[
+                minPace ? minPace - 0.33 : 'auto',
+                maxPace ? maxPace + 0.33 : 'auto'
+              ]}
+              label={{ value: 'Grade Adj. Pace (min/km)', angle: -90, position: 'insideLeft' }}
+              tickFormatter={v => formatPaceMMSS(v)}
+              allowDecimals={false}
+              interval={0}
+              tickCount={Math.ceil((maxPace - minPace) / yTickInterval) + 2}
+            />
+            <Tooltip
+              formatter={(value) => formatPaceMMSS(value)}
+              labelFormatter={(label) => `Distance: ${label ? label.toFixed(2) : 'n/a'} km`}
+            />
+            <Line
+              type="monotone"
+              dataKey="medianGradeAdjPace"
+              stroke="#1976d2"
+              strokeWidth={3}
+              dot={true}
+              connectNulls={true}
+              name="Grade Adj. Pace"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
+
 
