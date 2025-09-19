@@ -8,6 +8,7 @@ import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import PersonalGAP from './Components/PersonalGAP';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import TimeAtAltitudeTable from './Components/Timeataltitude';
 import {
   findMajorClimbs,
   getTotalTime,
@@ -531,6 +532,21 @@ function MainPage() {
         </div>
       </div>
 
+ {/* Grey line separator */}
+      <hr style={{
+        width: '100%',
+        maxWidth: 1800,
+        margin: '32px auto 24px auto',
+        border: 0,
+        borderTop: '2px solid #e0e0e0'
+      }} />
+
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0', marginTop: 32 }}>
+  <div style={{ width: '100%' }}>
+    <TimeAtAltitudeTable bins={bins} route={fullRoute} noTimeData={noTimeData} />
+  </div>
+</div>
+
       {/* Grey line separator */}
       <hr style={{
         width: '100%',
@@ -562,13 +578,16 @@ function MainPage() {
 
 
       {/* Personal GAP*/}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0' }}>
-        <div style={{ width: '100%' }}>
-          <PersonalGAP
-            bins={bins} route={route} polyCoeffs={polyCoeffs} formatPoly4={formatPoly4} checkpoints={checkpoints} noTimeData={noTimeData}
-          />
-        </div>
-      </div>
+      {!noTimeData && (
+        <PersonalGAP
+          bins={bins}
+          route={route}
+          polyCoeffs={polyCoeffs}
+          formatPoly4={formatPoly4}
+          checkpoints={checkpoints}
+          noTimeData={noTimeData}
+        />
+      )}
       
     </div>
   );

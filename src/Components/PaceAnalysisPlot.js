@@ -378,62 +378,67 @@ const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
           </tbody>
         </table>
       </div>
-      <div style={{ margin: '16px 0', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ marginRight: 16, fontWeight: 500, fontSize: 16 }}>Choose segment size:</span>
-        <ToggleButtonGroup
-          value={segmentSize}
-          exclusive
-          onChange={(_, value) => value && setSegmentSize(value)}
-          aria-label="segment size"
-          size="small"
-        >
-          <ToggleButton value={100} aria-label="100m">100m</ToggleButton>
-          <ToggleButton value={500} aria-label="500m">500m</ToggleButton>
-          <ToggleButton value={1000} aria-label="1km">1km</ToggleButton>
-          <ToggleButton value={5000} aria-label="5km">5km</ToggleButton>
-        </ToggleButtonGroup>
-      </div>
-      <div style={{ marginTop: 40, width: '100%', maxWidth: 1600 }}>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={segmentData}>
-            {/* Consistently spaced grid lines */}
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="distance"
-              type="number"
-              domain={[0, maxSegmentDistance]} // <-- Set domain to actual max distance
-              label={{ value: 'Distance (km)', position: 'insideBottom', offset: -5 }}
-              tickFormatter={v => v.toFixed(1)}
-              interval={0}
-              tickCount={Math.ceil(maxSegmentDistance / xTickInterval) + 1}
-            />
-            <YAxis
-              domain={[
-                minPace ? minPace - 0.33 : 'auto',
-                maxPace ? maxPace + 0.33 : 'auto'
-              ]}
-              label={{ value: 'Grade Adj. Pace (min/km)', angle: -90, position: 'insideLeft' }}
-              tickFormatter={v => formatPaceMMSS(v)}
-              allowDecimals={false}
-              interval={0}
-              tickCount={Math.ceil((maxPace - minPace) / yTickInterval) + 2}
-            />
-            <Tooltip
-              formatter={(value) => formatPaceMMSS(value)}
-              labelFormatter={(label) => `Distance: ${label ? label.toFixed(2) : 'n/a'} km`}
-            />
-            <Line
-              type="monotone"
-              dataKey="medianGradeAdjPace"
-              stroke="#1976d2"
-              strokeWidth={3}
-              dot={true}
-              connectNulls={true}
-              name="Grade Adj. Pace"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      {/* Only show segment size selector and graph if not planning a run */}
+      {!noTimeData && (
+        <>
+          <div style={{ margin: '16px 0', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ marginRight: 16, fontWeight: 500, fontSize: 16 }}>Choose segment size:</span>
+            <ToggleButtonGroup
+              value={segmentSize}
+              exclusive
+              onChange={(_, value) => value && setSegmentSize(value)}
+              aria-label="segment size"
+              size="small"
+            >
+              <ToggleButton value={100} aria-label="100m">100m</ToggleButton>
+              <ToggleButton value={500} aria-label="500m">500m</ToggleButton>
+              <ToggleButton value={1000} aria-label="1km">1km</ToggleButton>
+              <ToggleButton value={5000} aria-label="5km">5km</ToggleButton>
+            </ToggleButtonGroup>
+          </div>
+          <div style={{ marginTop: 40, width: '100%', maxWidth: 1600 }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={segmentData}>
+                {/* Consistently spaced grid lines */}
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="distance"
+                  type="number"
+                  domain={[0, maxSegmentDistance]} // <-- Set domain to actual max distance
+                  label={{ value: 'Distance (km)', position: 'insideBottom', offset: -5 }}
+                  tickFormatter={v => v.toFixed(1)}
+                  interval={0}
+                  tickCount={Math.ceil(maxSegmentDistance / xTickInterval) + 1}
+                />
+                <YAxis
+                  domain={[
+                    minPace ? minPace - 0.33 : 'auto',
+                    maxPace ? maxPace + 0.33 : 'auto'
+                  ]}
+                  label={{ value: 'Grade Adj. Pace (min/km)', angle: -90, position: 'insideLeft' }}
+                  tickFormatter={v => formatPaceMMSS(v)}
+                  allowDecimals={false}
+                  interval={0}
+                  tickCount={Math.ceil((maxPace - minPace) / yTickInterval) + 2}
+                />
+                <Tooltip
+                  formatter={(value) => formatPaceMMSS(value)}
+                  labelFormatter={(label) => `Distance: ${label ? label.toFixed(2) : 'n/a'} km`}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="medianGradeAdjPace"
+                  stroke="#1976d2"
+                  strokeWidth={3}
+                  dot={true}
+                  connectNulls={true}
+                  name="Grade Adj. Pace"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
     </div>
   );
 }
