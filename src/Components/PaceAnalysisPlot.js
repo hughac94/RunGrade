@@ -53,6 +53,7 @@ function Bar({ value, max, color = "#1976d2", width = 100, label = "" }) {
 export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4, noTimeData }) {
   // === CHANGED: Segment size state with presets ===
   const [segmentSize, setSegmentSize] = useState(500);
+  const [removeLastSegment, setRemoveLastSegment] = useState(false);
 
   const gradientGroups = [
     { label: '< -20', min: -Infinity, max: -20 },
@@ -152,6 +153,10 @@ export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4,
   const maxAdjTime = Math.max(...groupStats.map(row => row.totalAdjustedTime || 0));
   const maxUserGapPace = Math.max(...groupStats.map(row => row.userGapPace || 0));
   const maxDistance = Math.max(...groupStats.map(row => row.totalDistance || 0));
+  const minUserGapPace = Math.min(...groupStats.map(row => row.userGapPace || Infinity));
+const userGapPaceRange = maxUserGapPace - minUserGapPace;
+const minGradeAdjPace = Math.min(...groupStats.map(row => row.gradeAdjPace || Infinity));
+const gradeAdjPaceRange = maxGradeAdjPace - minGradeAdjPace;
   // === END ADDED ===
 
   // --- Build segmentData for the chart ---
@@ -210,8 +215,12 @@ export default function PaceAnalysisPlot({ bins, route, polyCoeffs, formatPoly4,
   // Set a constant for column width
   const COL_WIDTH = 140;
 
-const minPace = Math.min(...segmentData.map(d => d.medianGradeAdjPace || Infinity));
-const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
+  const displayedSegmentData = removeLastSegment && segmentData.length > 1
+    ? segmentData.slice(0, -1)
+    : segmentData;
+
+  const minPace = Math.min(...displayedSegmentData.map(d => d.medianGradeAdjPace || Infinity));
+  const maxPace = Math.max(...displayedSegmentData.map(d => d.medianGradeAdjPace || 0));
 
   // Calculate max distance for x-axis domain
   const maxSegmentDistance = segmentData.length > 0
@@ -320,8 +329,8 @@ const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
                     <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center', minWidth: COL_WIDTH }}>
                       {/* === CHANGED: Use Bar === */}
                       <Bar
-                        value={row.gradeAdjPace}
-                        max={maxGradeAdjPace}
+                        value={row.gradeAdjPace - minGradeAdjPace}
+                        max={gradeAdjPaceRange}
                         color="#0288d1"
                         width={COL_WIDTH}
                         label={formatPace(row.gradeAdjPace)}
@@ -344,8 +353,13 @@ const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
                 {/* Adj. Pace (User GAP) */}
                 <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', color: '#2a72e5', fontWeight: 600, textAlign: 'center', minWidth: COL_WIDTH }}>
                   {/* === CHANGED: Use Bar === */}
-                  <Bar value={row.userGapPace} max={maxUserGapPace} color="#e64a19" width={COL_WIDTH}
-                    label={formatPace(row.userGapPace)} />
+                  <Bar
+                    value={row.userGapPace - minUserGapPace}
+                    max={userGapPaceRange}
+                    color="#e64a19"
+                    width={COL_WIDTH}
+                    label={formatPace(row.userGapPace)}
+                  />
                 </td>
               </tr>
             ))}
@@ -395,16 +409,22 @@ const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
               <ToggleButton value={1000} aria-label="1km">1km</ToggleButton>
               <ToggleButton value={5000} aria-label="5km">5km</ToggleButton>
             </ToggleButtonGroup>
+            <button
+              style={{ marginLeft: 24, padding: '6px 16px', fontWeight: 500, borderRadius: 4, border: '1px solid #1976d2', background: removeLastSegment ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer' }}
+              onClick={() => setRemoveLastSegment(v => !v)}
+            >
+              {removeLastSegment ? 'Restore Last Segment' : 'Remove Last Segment'}
+            </button>
           </div>
           <div style={{ marginTop: 40, width: '100%', maxWidth: 1600 }}>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={segmentData}>
+              <LineChart data={displayedSegmentData}>
                 {/* Consistently spaced grid lines */}
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="distance"
                   type="number"
-                  domain={[0, maxSegmentDistance]} // <-- Set domain to actual max distance
+                  domain={[0, maxSegmentDistance]}
                   label={{ value: 'Distance (km)', position: 'insideBottom', offset: -5 }}
                   tickFormatter={v => v.toFixed(1)}
                   interval={0}
@@ -412,8 +432,8 @@ const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
                 />
                 <YAxis
                   domain={[
-                    minPace ? minPace - 0.33 : 'auto',
-                    maxPace ? maxPace + 0.33 : 'auto'
+                    minPace !== Infinity ? minPace - 0.33 : 'auto',
+                    maxPace !== 0 ? maxPace + 0.33 : 'auto'
                   ]}
                   label={{ value: 'Grade Adj. Pace (min/km)', angle: -90, position: 'insideLeft' }}
                   tickFormatter={v => formatPaceMMSS(v)}
@@ -442,5 +462,3 @@ const maxPace = Math.max(...segmentData.map(d => d.medianGradeAdjPace || 0));
     </div>
   );
 }
-
-

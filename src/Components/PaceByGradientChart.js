@@ -12,6 +12,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import gradientSummaryGroups from './GradientGroups';
 import { sectionTitleSx } from './Styles';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 // Helper to parse h:mm:ss or m:ss to seconds
 function parseTimeToSeconds(timeStr) {
@@ -71,11 +73,16 @@ function formatMinSec(decimalMinutes) {
 }
 
 export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1", label2 = "File 2" }) {
-  const data1 = getPaceByGradient(bins1);
-  const data2 = getPaceByGradient(bins2);
+  const [excludeLastSegment, setExcludeLastSegment] = React.useState(false);
 
-  const timeData1 = getTotalTimeByGradientGroup(bins1, gradientGroups);
-  const timeData2 = getTotalTimeByGradientGroup(bins2, gradientGroups);
+  const bins1Filtered = excludeLastSegment ? bins1.slice(0, -1) : bins1;
+  const bins2Filtered = excludeLastSegment ? bins2.slice(0, -1) : bins2;
+
+  const data1 = getPaceByGradient(bins1Filtered);
+  const data2 = getPaceByGradient(bins2Filtered);
+
+  const timeData1 = getTotalTimeByGradientGroup(bins1Filtered, gradientGroups);
+  const timeData2 = getTotalTimeByGradientGroup(bins2Filtered, gradientGroups);
 
   const barChartData = gradientGroups.map((group, i) => ({
     group: group.label,
@@ -396,6 +403,18 @@ export default function PaceByGradientScatter({ bins1, bins2, label1 = "File 1",
             </tbody>
           </table>
         </Box>
+
+        {/* Exclude Last Segment Checkbox */}
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={excludeLastSegment}
+              onChange={e => setExcludeLastSegment(e.target.checked)}
+              color="primary"
+            />
+          }
+          label="Exclude last segment from analysis"
+        />
       </Box>
     </Paper>
   );

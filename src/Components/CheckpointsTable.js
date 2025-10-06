@@ -14,11 +14,11 @@ function CheckpointsTable({
   distances = [],
   bins = [],
   inputGapMin = 4,
-  inputGapSec = 30
+  inputGapSec = 30,
+  noTimeData
 }) {
   // State for input field, toggles, and user-edited GAPs
   const [input, setInput] = useState('');
-  const [noTimeData, setNoTimeData] = useState(false);
   const [editSplits, setEditSplits] = useState(false);
   const [newGapArr, setNewGapArr] = useState([]);
   const [showNutrition, setShowNutrition] = useState(false);
@@ -290,20 +290,7 @@ useEffect(() => {
       </Typography>
       {/* Toggle buttons for time data and split editing */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, gap: 12 }}>
-        <button
-          style={{
-            padding: '6px 16px',
-            borderRadius: 6,
-            border: '1px solid #bbb',
-            background: noTimeData ? '#2563eb' : '#f8fafc',
-            color: noTimeData ? '#fff' : '#222',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-          onClick={() => setNoTimeData(v => !v)}
-        >
-          {noTimeData ? 'Show Time Data' : 'No Time Data'}
-        </button>
+    
         <button
           style={{
             padding: '6px 16px',
