@@ -231,6 +231,77 @@ const gradeAdjPaceRange = maxGradeAdjPace - minGradeAdjPace;
   const xTickInterval = maxSegmentDistance > 10 ? 2 : 1;
   const yTickInterval = 0.5; // 30 seconds in min/km
 
+  // === NEW: Build elevation-at-each-km points from full route (independent of segment size) ===
+  const elevKmPoints = React.useMemo(() => {
+    if (!Array.isArray(route) || route.length < 2) return [];
+    // Haversine helpers
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const R = 6371000;
+
+    // Build cumulative distance along route
+    const cum = [];
+    let distM = 0;
+    for (let i = 0; i < route.length; i++) {
+      const p = route[i];
+      if (i > 0) {
+        const a = route[i - 1];
+        const dLat = toRad(p.lat - a.lat);
+        const dLon = toRad(p.lon - a.lon);
+        const aa =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(a.lat)) * Math.cos(toRad(p.lat)) * Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+        distM += R * c;
+      }
+      cum.push({ km: distM / 1000, ele: p.ele });
+    }
+
+    if (cum.length === 0) return [];
+    const totalKm = Math.floor(cum[cum.length - 1].km);
+    if (totalKm <= 0) return [];
+
+    const out = [];
+    let j = 0;
+    for (let k = 0; k <= totalKm; k++) {
+      // advance j so that cum[j].km <= k <= cum[j+1].km
+      while (j + 1 < cum.length && cum[j + 1].km < k) j++;
+      if (j + 1 >= cum.length) {
+        out.push({ distance: k, elevation: cum[cum.length - 1].ele });
+        continue;
+      }
+      const a = cum[j];
+      const b = cum[j + 1];
+      const span = Math.max(1e-9, b.km - a.km);
+      const t = Math.min(1, Math.max(0, (k - a.km) / span));
+      const ele = a.ele + t * (b.ele - a.ele);
+      out.push({ distance: k, elevation: ele });
+    }
+    return out;
+  }, [route]);
+
+  const minElevation = elevKmPoints.length
+    ? Math.min(...elevKmPoints.map(d => d.elevation))
+    : 0;
+  const maxElevation = elevKmPoints.length
+    ? Math.max(...elevKmPoints.map(d => d.elevation))
+    : 100;
+
+  // === NEW: Merge pace segment points and per-km elevation samples into one chart dataset ===
+  const chartData = React.useMemo(() => {
+    // Keep pace points as-is
+    const rows = (displayedSegmentData || []).map(d => ({
+      distance: d.distance,
+      medianGradeAdjPace: d.medianGradeAdjPace,
+      elevation: null
+    }));
+    // Add elevation km points
+    elevKmPoints.forEach(e => {
+      rows.push({ distance: e.distance, medianGradeAdjPace: null, elevation: e.elevation });
+    });
+    rows.sort((a, b) => a.distance - b.distance);
+    return rows;
+  }, [displayedSegmentData, elevKmPoints]);
+
   // --- Chart rendering ---
   return (
     <div style={{ width: '100%', margin: '0 auto 40px auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -418,8 +489,8 @@ const gradeAdjPaceRange = maxGradeAdjPace - minGradeAdjPace;
           </div>
           <div style={{ marginTop: 40, width: '100%', maxWidth: 1600 }}>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={displayedSegmentData}>
-                {/* Consistently spaced grid lines */}
+              {/* === CHANGED: feed merged chartData so both lines render === */}
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="distance"
@@ -430,7 +501,9 @@ const gradeAdjPaceRange = maxGradeAdjPace - minGradeAdjPace;
                   interval={0}
                   tickCount={Math.ceil(maxSegmentDistance / xTickInterval) + 1}
                 />
+                {/* Left Y for pace */}
                 <YAxis
+                  yAxisId="pace"
                   domain={[
                     minPace !== Infinity ? minPace - 0.33 : 'auto',
                     maxPace !== 0 ? maxPace + 0.33 : 'auto'
@@ -441,11 +514,26 @@ const gradeAdjPaceRange = maxGradeAdjPace - minGradeAdjPace;
                   interval={0}
                   tickCount={Math.ceil((maxPace - minPace) / yTickInterval) + 2}
                 />
+                {/* === NEW: Right Y for elevation === */}
+                <YAxis
+                  yAxisId="elev"
+                  orientation="right"
+                  domain={[minElevation, maxElevation]}
+                  tick={{ fill: '#9ca3af' }}
+                  stroke="#9ca3af"
+                  width={44}
+                />
                 <Tooltip
-                  formatter={(value) => formatPaceMMSS(value)}
+                  formatter={(value, name) => {
+                    if (name === 'medianGradeAdjPace') return [formatPaceMMSS(value), 'Pace'];
+                    if (name === 'elevation') return [`${Math.round(value)} m`, 'Elevation'];
+                    return [value, name];
+                  }}
                   labelFormatter={(label) => `Distance: ${label ? label.toFixed(2) : 'n/a'} km`}
                 />
+                {/* Pace line (foreground) */}
                 <Line
+                  yAxisId="pace"
                   type="monotone"
                   dataKey="medianGradeAdjPace"
                   stroke="#1976d2"
@@ -453,6 +541,17 @@ const gradeAdjPaceRange = maxGradeAdjPace - minGradeAdjPace;
                   dot={true}
                   connectNulls={true}
                   name="Grade Adj. Pace"
+                />
+                {/* === NEW: Elevation line sampled per km (light grey) === */}
+                <Line
+                  yAxisId="elev"
+                  type="linear"
+                  dataKey="elevation"
+                  stroke="#c4c4c4"
+                  strokeWidth={1.5}
+                  dot={false}
+                  connectNulls={true}
+                  name="Elevation"
                 />
               </LineChart>
             </ResponsiveContainer>
