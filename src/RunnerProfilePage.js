@@ -1,49 +1,25 @@
 import React from 'react';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Batchanalyser from './RunGradeBatch/Batchanalyser'; // Import Batchanalyser directly
 
-function RunnerProfilePage() {
+const RunnerProfilePage = () => {
   return (
-    <Box sx={{ 
-      maxWidth: 1200, 
-      mx: 'auto', 
-      p: 3,
-      textAlign: 'center'
-    }}>
-      <Typography
-        variant="h3"
-        sx={{
-          fontWeight: 700,
-          mb: 4,
-          color: '#1976d2'
-        }}
-      >
-        Runner Profile
-      </Typography>
-      
-      <Typography
-        variant="h6"
-        sx={{
-          color: '#666',
-          fontStyle: 'italic',
-          mb: 2
-        }}
-      >
-        Coming Soon!
-      </Typography>
-      
-      <Typography
-        variant="body1"
-        sx={{
-          color: '#888',
-          maxWidth: 600,
-          mx: 'auto'
-        }}
-      >
-        This page will allow you to create a GAP model specific to you and your running and identify areas to improve.
-      </Typography>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+      {/* Title and Description */}
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2', mb: 1 }}>
+          🏃‍♂️ PERSONAL GRADE ADJUSTED RUNNING ANALYSER
+        </Typography>
+        <Typography variant="body1" sx={{ color: '#666' }}>
+          📁 Upload multiple GPX or FIT files, set filters, and analyse... to see how your pace adjusts with gradient over multiple runs!
+        </Typography>
+      </Box>
+
+      {/* Batchanalyser Component */}
+      <Batchanalyser />
     </Box>
   );
-}
+};
 
 export default RunnerProfilePage;
