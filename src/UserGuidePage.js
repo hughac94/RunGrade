@@ -47,11 +47,8 @@ export default function UserGuidePage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
           <span role="img" aria-label="Runner Profile" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>👤</span>
-          <span style={{ fontSize: 'inherit' }}><b>Runner Profile:</b> Create your own grade adjusted pace model and understand where you could improve.</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-          <span role="img" aria-label="Runner Profile Analysis" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>📊</span>
-          <span style={{ fontSize: 'inherit' }}><b>Runner Profile Analysis:</b> Analyze multiple files at once to see how you personally adjust your running to different gradients, identifying your strengths and weaknesses.</span>
+          <span style={{ fontSize: 'inherit' }}><b>Runner Profile:</b> Analyze multiple files at once to see how you personally adjust your running to different gradients, identifying your strengths and weaknesses.</span>
+        
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
           <span role="img" aria-label="GAP Detail" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>📐</span>
