@@ -2,11 +2,11 @@
 import {
   getAnalysisBins, getBinSummary, getGradientPaceAnalysis,
   getPaceByGradientChart, getGradeAdjustmentAnalysis, getAdjustmentByGradientBins
-} from '../gpxBinning.js';
+} from '../gpxBinning';
 import {
   processGPXFileFromText, processFITFileFromArrayBuffer,
   getGPXRoutePointsFromText, getFITRoutePointsFromArrayBuffer
-} from '../GPXhelpers.js';
+} from '../GPXhelpers';
 
 async function analyzeSingleFile(file, binLength) {
   const name = file.name.toLowerCase();
