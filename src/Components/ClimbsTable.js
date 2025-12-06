@@ -23,6 +23,12 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
     return min + sec / 60;
   };
 
+function parseTimeToSeconds(timeStr) {
+  if (!timeStr) return 0;
+  const [h, m, s] = timeStr.split(':').map(Number);
+  return h * 3600 + m * 60 + s;
+}
+
   // Helper: Calculate total climbing (sum of all positive elevation changes) between two route indices
   function getTotalClimbingGain(route, startIdx, endIdx) {
     if (!route || !Array.isArray(route) || startIdx == null || endIdx == null) return 0;
@@ -67,6 +73,43 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
       totalAdjustedTime += timeSeconds;
     }
     return totalAdjustedTime;
+  };
+
+  // Helper: Calculate Climb GAP (min/km)
+  const calculateClimbGAP = (climb, bins) => {
+    if (!climb || !bins || !Array.isArray(bins)) return null;
+
+    // Use index-based selection
+    let binEndDistances = [];
+    let cumDist = 0;
+    for (let bin of bins) {
+      cumDist += (bin.distance || 0) / 1000; // m to km
+      binEndDistances.push(cumDist);
+    }
+    const climbStartKm = climb.start;
+    const climbEndKm = climb.start + climb.distance;
+    let binStartIdx = binEndDistances.findIndex(d => d >= climbStartKm);
+    if (binStartIdx === -1) binStartIdx = 0;
+    let binEndIdx = binEndDistances.findIndex(d => d >= climbEndKm);
+    if (binEndIdx === -1) binEndIdx = bins.length - 1;
+
+    // Select bins by index
+    const binsInClimb = bins.slice(binStartIdx, binEndIdx + 1);
+
+    // Calculate total time and total grade-adjusted distance
+    const totalTimeSecs = binsInClimb.reduce((sum, bin) => {
+      const time = typeof bin.timeTaken === 'string' ? parseTimeToSeconds(bin.timeTaken) : 0;
+      return sum + time;
+    }, 0);
+
+    const totalGradeAdjDistance = binsInClimb.reduce((sum, bin) => {
+      return sum + (bin.gradeAdjustedDistance || 0);
+    }, 0);
+
+    // Calculate GAP (min/km)
+    return totalGradeAdjDistance > 0
+      ? (totalTimeSecs / 60) / (totalGradeAdjDistance / 1000)
+      : null;
   };
 
   // Calculate totals
@@ -168,6 +211,9 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                 <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>Avg Gradient (%)</th>
                 {!noTimeData && (
                   <>
+                      <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>
+                    Climb GAP<br/>(min/km)
+                  </th>
                     <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>Elapsed</th>
                     <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>Elapsed from Start</th>
                     <th style={{ padding: 10, borderBottom: '2px solid #e0e0e0', textAlign: 'center', fontWeight: 600 }}>VAM (m/h)</th>
@@ -274,6 +320,9 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                   adjVam = Math.round((climb.gain / adjTimeAtGap) * 3600);
                 }
 
+                // Calculate Climb GAP
+                const climbGAP = !noTimeData ? calculateClimbGAP(climb, bins) : null;
+
                 return (
                   <tr key={`${climb.startIdx}-${climb.endIdx}-${idx}`} style={{
                     background: idx % 2 === 0 ? '#fff' : '#f4f7fa'
@@ -309,6 +358,9 @@ function ClimbsTable({ climbs, minGain, setMinGain, maxLoss, setMaxLoss, route, 
                     <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>{climb.avgGradient}</td>
                     {!noTimeData && (
                       <>
+                        <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center'}}>
+                        {climbGAP != null ? formatMinSec(climbGAP) : '—'}
+                      </td>
                         <td style={{ padding: 10, borderBottom: '1px solid #e0e0e0', textAlign: 'center' }}>
                           { climbTime}
                         </td>

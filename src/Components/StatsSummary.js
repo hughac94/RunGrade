@@ -141,6 +141,23 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
     "#ff5722"  // Adj Total Time for new GAP - deep orange
   ];
 
+  // Calculate elevation per km
+  const elevationPerKm = stats.distance > 0 ? stats.elevationGain / stats.distance : 0;
+
+  // Categorize elevation per km
+  let climbCategory = 'Flattish';
+  let climbColor = '#34a853'; // Green
+  if (elevationPerKm > 100) {
+    climbCategory = 'Extreme';
+    climbColor = '#ea4335'; // Red
+  } else if (elevationPerKm > 50) {
+    climbCategory = 'Mountainous';
+    climbColor = '#fbbc04'; // Orange
+  } else if (elevationPerKm > 20) {
+    climbCategory = 'Hilly';
+    climbColor = '#ffeb3b'; // Yellow
+  }
+
   // Build the boxes as an array
   const boxes = [
     {
@@ -199,6 +216,12 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
       value: formatTime(adjTotalTimeSecs),
       color: colorPalette[6],
       label: "Adj Total Time for new GAP"
+    },
+    {
+      icon: "🧗",
+      value: `${elevationPerKm.toFixed(1)} m/km`,
+      color: climbColor,
+      label: `Climb per km (${climbCategory})`
     }
   ];
 
