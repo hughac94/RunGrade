@@ -29,6 +29,7 @@ import GPXParser from "gpxparser";
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
 import { useCesiumIframe } from './Components/CesiumRecentre';
 import WeatherPredictor from './Components/WeatherPredictor';
+import { generatePDFReport } from './Components/generatePDFReport';
 
 function MainPage() {
   const [route, setRoute] = useState([]); // single route
@@ -262,7 +263,7 @@ function MainPage() {
   });
 
   return (
-    <div style={{ width: '100vw', padding: 20, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+    <div id="main-report-content" style={{ width: '100vw', padding: 20, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
         <ToggleButtonGroup
           value={noTimeData ? "planning" : "reviewing"}
@@ -588,7 +589,15 @@ function MainPage() {
           noTimeData={noTimeData}
         />
       )}
-      
+
+      <Button
+        variant="contained"
+        color="secondary"
+        style={{ margin: '32px auto 0 auto', fontWeight: 700, display: 'block' }}
+        onClick={() => generatePDFReport('main-report-content')}
+      >
+        Download PDF Report
+      </Button>
     </div>
   );
 }
