@@ -84,7 +84,7 @@ export default function ConfigPanel({
       {showGapInput && (
         <>
           <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 2, color: '#1976d2'  }}>
-            ⚡ Input Grade Adjusted Pace:
+            ⚡ Input a New 'Grade Adjusted Pace' to see new/adjusted times and splits: 
           </Typography>
           <Grid container spacing={1} alignItems="center" sx={{ mt: 1 }}>
             <Grid >
@@ -126,7 +126,7 @@ export default function ConfigPanel({
           sx={{ fontWeight: 700, fontSize: 16, textTransform: 'none', color: '#1976d2', px: 2 }}
           onClick={() => setShowAdvanced(v => !v)}
         >
-          Advanced file configuration
+          Click here for Advanced GPX file configuration (e.g. smoothing)
         </Button>
       </Box>
 

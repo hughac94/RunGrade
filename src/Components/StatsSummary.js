@@ -215,7 +215,10 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
       icon: "⚡",
       value: formatTime(adjTotalTimeSecs),
       color: colorPalette[6],
-      label: "Adj Total Time for new GAP"
+      label: "Adj Total Time for new GAP",
+      // Highlight this label like the ConfigPanel blue text
+      labelColor: '#1976d2',
+      labelWeight: 700
     },
     {
       icon: "🧗",
@@ -317,11 +320,11 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
               </Typography>
               <Typography
                 sx={{
-                  color: theme.palette.text.secondary,
+                  color: box.labelColor || theme.palette.text.secondary,
                   mt: 1,
                   textAlign: 'center',
                   fontSize: 15,
-                  fontWeight: 500,
+                  fontWeight: box.labelWeight || 500,
                   letterSpacing: 0.2,
                 }}
               >
@@ -362,11 +365,11 @@ export default function StatsSummary({ stats, bins, route, pauseTimeRemoved, che
               </Typography>
               <Typography
                 sx={{
-                  color: theme.palette.text.secondary,
+                  color: box.labelColor || theme.palette.text.secondary,
                   mt: 1,
                   textAlign: 'center',
                   fontSize: 15,
-                  fontWeight: 500,
+                  fontWeight: box.labelWeight || 500,
                   letterSpacing: 0.2,
                 }}
               >
