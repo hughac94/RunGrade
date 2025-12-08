@@ -349,7 +349,10 @@ export default function WeatherPredictor({ route, bins, checkpoints }) {
           variant="h5"
           sx={sectionTitleSx}
         >
-          Weather Predictor
+          Weather Predictor{' '}
+          <span style={{ fontStyle: 'italic' }}>
+            - location and time adjusted through the race
+          </span>
         </Typography>
 
         {/* Date and Time inputs */}

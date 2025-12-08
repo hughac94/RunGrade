@@ -244,6 +244,49 @@ function MainPage() {
     }
   }, [route, distances]);
 
+  // Auto-clean checkpoints when route/distances change:
+  useEffect(() => {
+    // Compute current max distance (km)
+    const maxDistanceKm = distances.length > 0 ? distances[distances.length - 1] : 0;
+    if (maxDistanceKm <= 0) {
+      // If no route, keep only Start at 0 and no End
+      setCheckpoints(prev => {
+        const start = { km: 0, name: 'Start' };
+        return [start];
+      });
+      return;
+    }
+
+    setCheckpoints(prev => {
+      // 1) Drop any checkpoints beyond the new max distance
+      let cps = prev.filter(cp => cp.km <= maxDistanceKm + 1e-6);
+
+      // 2) Ensure exactly one Start at 0
+      const hasStart = cps.some(cp => Math.abs(cp.km - 0) < 1e-6 && cp.name === 'Start');
+      if (!hasStart) {
+        cps = [{ km: 0, name: 'Start' }, ...cps];
+      } else {
+        // Normalize Start entry to exactly km:0 and name:'Start'
+        cps = cps.map(cp =>
+          Math.abs(cp.km - 0) < 1e-6 ? { km: 0, name: 'Start' } : cp
+        );
+      }
+
+      // 3) Remove all existing 'End' checkpoints, we’ll add the correct one
+      cps = cps.filter(cp => !(cp.name && cp.name.toLowerCase() === 'end'));
+
+      // 4) Add the single correct End at current max distance
+      const correctEnd = { km: Number(maxDistanceKm.toFixed(2)), name: 'End' };
+      cps = [...cps, correctEnd];
+
+      // 5) Sort and dedupe by km
+      cps.sort((a, b) => a.km - b.km);
+      cps = cps.filter((cp, idx, arr) => idx === 0 || Math.abs(cp.km - arr[idx - 1].km) > 1e-6);
+
+      return cps;
+    });
+  }, [distances]);
+
   const runners = [{
     route,
     distances,
@@ -558,15 +601,17 @@ function MainPage() {
       }} />
 
       {/* Weather Predictor Section */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0' }}>
-        <div style={{ width: '100%' }}>
-          <WeatherPredictor 
-            route={route}
-            bins={bins}
-            checkpoints={checkpoints}
-          />
+      {noTimeData && (
+        <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0' }}>
+          <div style={{ width: '100%' }}>
+            <WeatherPredictor 
+              route={route}
+              bins={bins}
+              checkpoints={checkpoints}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
  {/* Grey line separator */}
       <hr style={{

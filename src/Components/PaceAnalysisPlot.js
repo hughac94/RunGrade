@@ -524,9 +524,14 @@ const gradeAdjPaceRange = maxGradeAdjPace - minGradeAdjPace;
                   width={44}
                 />
                 <Tooltip
-                  formatter={(value, name) => {
-                    if (name === 'medianGradeAdjPace') return [formatPaceMMSS(value), 'Pace'];
-                    if (name === 'elevation') return [`${Math.round(value)} m`, 'Elevation'];
+                  formatter={(value, name, props) => {
+                    // props.dataKey is the reliable key ('medianGradeAdjPace' or 'elevation')
+                    if (props && props.dataKey === 'medianGradeAdjPace') {
+                      return [formatPaceMMSS(value), 'Grade Adj. Pace'];
+                    }
+                    if (props && props.dataKey === 'elevation') {
+                      return [`${Math.round(value)} m`, 'Elevation'];
+                    }
                     return [value, name];
                   }}
                   labelFormatter={(label) => `Distance: ${label ? label.toFixed(2) : 'n/a'} km`}
