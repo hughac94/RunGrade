@@ -54,6 +54,13 @@ export default function UserGuidePage() {
           <span role="img" aria-label="GAP Detail" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>📐</span>
           <span style={{ fontSize: 'inherit' }}><b>G-A-P Detail:</b> Unpick the maths behind grade-adjusted pace.</span>
         </div>
+        {/* New: Treadmill Calculator */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+          <span role="img" aria-label="Treadmill Calculator" style={{ minWidth: 28, fontSize: 'inherit', marginRight: 16 }}>🏃‍♂️</span>
+          <span style={{ fontSize: 'inherit' }}>
+            <b>Treadmill Calculator:</b> Input speed and incline to see raw pace and grade‑adjusted pace, with the live GAP multiplier curve.
+          </span>
+        </div>
       </div>
       <Typography sx={{ mb: 2, fontSize: 'inherit' }}>
         <b>Tip:</b> Use <a href="https://www.sauce.llc/" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>Strava Sauce</a> to download others' race files.
