@@ -13,6 +13,7 @@ import Box from '@mui/material/Box';
 import UserGuidePage from './UserGuidePage';
 import { formatPoly4 } from './Components/StravadataCleaner';
 import { useStravaPolyCoeffs } from './Components/StravadataCleaner';
+import TreadmillCalculator from './TreadmillCalculator';
 
 
 // --- Support Button and Popup ---
@@ -127,68 +128,75 @@ function App() {
   const navigate = useNavigate();
   const [polyCoeffs] = useStravaPolyCoeffs();
 
-  const tabRoutes = ['/user-guide', '/single-gpx', '/multi-gpx', '/racing-snakes', '/runner-profile', '/detail'];
+  const tabRoutes = ['/user-guide', '/single-gpx', '/multi-gpx', '/racing-snakes', '/runner-profile', '/detail', '/treadmill'];
   const tabValue = tabRoutes.indexOf(location.pathname);
   const safeTabValue = tabValue === -1 ? 0 : tabValue;
 
   return (
     <>
       <AppBar
-        position="sticky"
-        color="default"
-        elevation={2}
-        sx={{
-          mb: 4,
-          borderRadius: 3,
-          maxWidth: 1200,
-          mx: 'auto',
-          mt: 3,
-          background: 'rgba(255,255,255,0.92)',
-          boxShadow: '0 4px 24px rgba(30,41,59,0.07)',
-        }}
-      >
-        <Toolbar sx={{ minHeight: 64 }}>
-          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-            <Tabs
-              value={safeTabValue}
-              onChange={(_, v) => navigate(tabRoutes[v])}
-              textColor="primary"
-              indicatorColor="primary"
-              sx={{
-                '.MuiTab-root': {
-                  fontWeight: 700,
-                  fontSize: 18,
-                  letterSpacing: 0.5,
-                  borderRadius: 2,
-                  minWidth: 180,
-                  px: 3,
-                  py: 1.5,
-                  transition: 'background 0.2s',
-                  textTransform: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                },
-                '.Mui-selected': {
-                  background: 'rgba(37,99,235,0.10)',
-                  color: 'primary.main',
-                  boxShadow: '0 2px 8px rgba(37,99,235,0.08)',
-                },
-              }}
-              TabIndicatorProps={{
-                style: { height: 4, borderRadius: 2 }
-              }}
-            >
-              <Tab label={<span>📖 User Guide</span>} />
-              <Tab label={<span>🏠 Single GPX</span>} />
-              <Tab label={<span>🚀 Two GPX Files</span>} />
-              <Tab label={<span>🐍 Racing Snakes</span>} />
-              <Tab label={<span>👤 Runner Profile</span>} />
-              <Tab label={<span>📐 "G-A-P" Detail</span>} />
-            </Tabs>
-          </Box>
-        </Toolbar>
-      </AppBar>
+  position="sticky"
+  color="transparent"
+  elevation={0}
+  sx={{
+    mb: 4,
+    borderRadius: 0,
+    maxWidth: 'none',
+    mx: 0,
+    mt: 3,
+    background: 'transparent',
+    boxShadow: 'none',
+  }}
+>
+  <Toolbar sx={{ minHeight: 64, px: 2 }}>
+    {/* Center the tabs by constraining width */}
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+        <Tabs
+          value={safeTabValue}
+          onChange={(_, v) => navigate(tabRoutes[v])}
+          textColor="primary"
+          indicatorColor="primary"
+          variant="scrollable"
+          scrollButtons
+          allowScrollButtonsMobile
+          sx={{
+            px: 0,
+            '.MuiTabs-flexContainer': { gap: 4 },
+            '.MuiTab-root': {
+              fontWeight: 700,
+              fontSize: 16,
+              letterSpacing: 0.3,
+              borderRadius: 2,
+              minWidth: 140,
+              px: 2,
+              py: 1.2,
+              textTransform: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'transparent',
+            },
+            '.Mui-selected': {
+              background: 'transparent',
+              color: 'primary.main',
+              boxShadow: 'none',
+            },
+          }}
+          TabIndicatorProps={{ style: { height: 4, borderRadius: 2 } }}
+        >
+          <Tab label={<span>📖 User Guide</span>} />
+          <Tab label={<span>🏠 Single GPX</span>} />
+          <Tab label={<span>🚀 Two GPX Files</span>} />
+          <Tab label={<span>🐍 Racing Snakes</span>} />
+          <Tab label={<span>👤 Runner Profile</span>} />
+          <Tab label={<span>📐 "G-A-P" Detail</span>} />
+          <Tab label={<span>🏃‍♂️ Treadmill Calculator</span>} />
+        </Tabs>
+      </Box>
+    </Box>
+  </Toolbar>
+</AppBar>
       <Routes>
         <Route path="/" element={<Navigate to="/user-guide" replace />} />
         <Route path="/user-guide" element={<UserGuidePage />} />
@@ -205,6 +213,7 @@ function App() {
             />
           }
         />
+        <Route path="/treadmill" element={<TreadmillCalculator />} />
         <Route path="*" element={<Navigate to="/user-guide" replace />} />
       </Routes>
       <SupportButtonAndPopup />
