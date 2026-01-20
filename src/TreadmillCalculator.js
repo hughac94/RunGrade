@@ -44,6 +44,11 @@ export default function TreadmillCalculator() {
     return rawPaceMinPerKm / adjFactor;
   }, [gradient, rawPaceMinPerKm]);
 
+  // Equivalent grade-adjusted speed (km/h)
+  const gapSpeedKmh = useMemo(() => {
+    return isFinite(gapMinPerKm) && gapMinPerKm > 0 ? 60 / gapMinPerKm : NaN;
+  }, [gapMinPerKm]);
+
   // Multiplier at current gradient (clamped to ±35)
   const adjFactor = useMemo(() => {
     const clamped = Math.max(-35, Math.min(35, gradient));
@@ -156,8 +161,14 @@ export default function TreadmillCalculator() {
           <Typography variant="subtitle2" sx={{ color: '#64748b', mb: 0.5, fontWeight: 700 }}>
             Grade Adjusted Pace
           </Typography>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: '#2a72e5' }}>
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 800, color: '#2a72e5', display: 'flex', alignItems: 'baseline', gap: 1 }}
+          >
             {formatPaceMMSS(gapMinPerKm)}
+            <Typography component="span" variant="caption" sx={{ color: '#64748b' }}>
+              ({isFinite(gapSpeedKmh) ? gapSpeedKmh.toFixed(1) : '—'} km/h)
+            </Typography>
           </Typography>
           <Typography variant="caption" sx={{ color: '#94a3b8' }}>min/km (GAP)</Typography>
         </Box>
